@@ -27,11 +27,10 @@ async fn wah(Json(payload): Json<Wah>) -> Json<Wah> {
         data: String::new(),
     };
 
-    if payload.data == "wah" {
-        wah.data = String::from("Ninomae Ina'nis is Cute");
-    } else {
-        wah.data = String::from("wah doko?");
-    }
+    wah.data = match payload.data.as_str() {
+        "wah" => String::from("Ninomae Ina'nis is Cute"),
+        _ => String::from("wah doko?"),
+    };
 
     Json(wah)
 }
