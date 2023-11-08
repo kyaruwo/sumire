@@ -14,7 +14,7 @@ async fn main() {
     let addr: std::net::SocketAddr = ([127, 0, 0, 1], 42069).into();
     let server = axum::Server::bind(&addr).serve(app.into_make_service());
 
-    println!("sumire is alive @ http://{}", server.local_addr());
+    println!("sumire is alive @ http://{}/api", server.local_addr());
 
     server.await.expect("sumire died");
 }
