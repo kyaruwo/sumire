@@ -12,7 +12,7 @@ pub struct WahOut {
 }
 
 pub async fn wah(Json(payload): Json<WahIn>) -> Json<WahOut> {
-    let mut wah = WahOut {
+    let mut wah: WahOut = WahOut {
         data: String::new(),
     };
 
