@@ -20,8 +20,8 @@ async fn main() {
         .route("/api/wah", post(api::wah))
         .route("/api/notes", post(api::create_note))
         .route("/api/notes", get(api::read_notes))
-        .route("/api/notes/:id", put(api::update_note))
-        .route("/api/notes/:id", delete(api::delete_note))
+        .route("/api/notes", put(api::update_note))
+        .route("/api/notes", delete(api::delete_note))
         .with_state(pool);
 
     let addr: std::net::SocketAddr = ([127, 0, 0, 1], 42069).into();
