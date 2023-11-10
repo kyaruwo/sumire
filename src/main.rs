@@ -12,7 +12,7 @@ async fn main() {
         .await
     {
         Ok(pool) => pool,
-        Err(e) => return println!("{e}"),
+        Err(e) => return eprintln!("{e}"),
     };
 
     let app = axum::Router::new()
