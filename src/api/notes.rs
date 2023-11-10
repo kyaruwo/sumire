@@ -19,27 +19,26 @@ pub async fn create_note(
     extract::State(pool): extract::State<Pool<MySql>>,
     Json(payload): Json<CreateNote>,
 ) -> Result<(StatusCode, Json<Note>), StatusCode> {
-    let mut note: Note = Note {
-        id: 0,
-        title: payload.title,
-        body: payload.body,
-    };
-
-    match sqlx::query("INSERT INTO Notes (title, body) values (?, ?);")
-        .bind(&note.title)
-        .bind(&note.body)
+    let id: u64 = match sqlx::query("INSERT INTO Notes (title, body) values (?, ?);")
+        .bind(&payload.title)
+        .bind(&payload.body)
         .execute(&pool)
         .await
     {
-        Ok(res) => {
-            note.id = res.last_insert_id();
-            return Ok((StatusCode::CREATED, Json(note)));
-        }
+        Ok(res) => res.last_insert_id(),
         Err(e) => {
             eprintln!("{e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
+    return Ok((
+        StatusCode::CREATED,
+        Json(Note {
+            id,
+            title: payload.title,
+            body: payload.body,
+        }),
+    ));
 }
 
 pub async fn read_notes() {}
