@@ -12,7 +12,7 @@ mod wah;
 pub use wah::wah;
 
 mod notes;
-pub use notes::create_note;
 pub use notes::delete_note;
 pub use notes::read_notes;
 pub use notes::update_note;
+pub use notes::write_note;
