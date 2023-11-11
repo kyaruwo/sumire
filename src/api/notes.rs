@@ -81,6 +81,23 @@ pub async fn update_note(
     }
 }
 
-pub async fn delete_note() -> StatusCode {
-    StatusCode::NOT_IMPLEMENTED
+pub async fn delete_note(
+    extract::State(pool): extract::State<Pool<MySql>>,
+    extract::Path(id): extract::Path<u64>,
+) -> StatusCode {
+    let res: MySqlQueryResult = match sqlx::query("DELETE FROM Notes WHERE id=?;")
+        .bind(id)
+        .execute(&pool)
+        .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("{e}");
+            return StatusCode::INTERNAL_SERVER_ERROR;
+        }
+    };
+    match res.rows_affected() {
+        1 => StatusCode::OK,
+        _ => StatusCode::NOT_FOUND,
+    }
 }
