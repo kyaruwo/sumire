@@ -1,6 +1,20 @@
-use axum::{extract, http::StatusCode, Json};
+use axum::{
+    body::Body,
+    extract::{Path, State},
+    http::StatusCode,
+    routing::{delete, get, post, put},
+    Json, Router,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
+
+pub fn routes() -> Router<Pool<MySql>, Body> {
+    Router::new()
+        .route("/notes", post(write_note))
+        .route("/notes", get(read_notes))
+        .route("/notes/:id", put(update_note))
+        .route("/notes/:id", delete(delete_note))
+}
 
 #[derive(Deserialize)]
 pub struct WriteNote {
@@ -16,7 +30,7 @@ pub struct Note {
 }
 
 pub async fn write_note(
-    extract::State(pool): extract::State<Pool<MySql>>,
+    State(pool): State<Pool<MySql>>,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>), StatusCode> {
     let id: u64 = match sqlx::query("INSERT INTO Notes (title, body) values (?, ?);")
@@ -41,9 +55,7 @@ pub async fn write_note(
     ))
 }
 
-pub async fn read_notes(
-    extract::State(pool): extract::State<Pool<MySql>>,
-) -> Result<Json<Vec<Note>>, StatusCode> {
+pub async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, StatusCode> {
     let notes: Vec<Note> = match sqlx::query_as::<_, Note>("SELECT * FROM Notes;")
         .fetch_all(&pool)
         .await
@@ -58,8 +70,8 @@ pub async fn read_notes(
 }
 
 pub async fn update_note(
-    extract::State(pool): extract::State<Pool<MySql>>,
-    extract::Path(id): extract::Path<u64>,
+    State(pool): State<Pool<MySql>>,
+    Path(id): Path<u64>,
     Json(payload): Json<WriteNote>,
 ) -> StatusCode {
     let res: MySqlQueryResult = match sqlx::query("UPDATE Notes SET title=?, body=? WHERE id=?;")
@@ -81,10 +93,7 @@ pub async fn update_note(
     }
 }
 
-pub async fn delete_note(
-    extract::State(pool): extract::State<Pool<MySql>>,
-    extract::Path(id): extract::Path<u64>,
-) -> StatusCode {
+pub async fn delete_note(State(pool): State<Pool<MySql>>, Path(id): Path<u64>) -> StatusCode {
     let res: MySqlQueryResult = match sqlx::query("DELETE FROM Notes WHERE id=?;")
         .bind(id)
         .execute(&pool)

@@ -1,6 +1,7 @@
-mod api;
-use axum::routing::{delete, get, post, put};
 use sqlx::{mysql::MySqlPoolOptions, MySql, Pool};
+use std::net::SocketAddr;
+
+mod api;
 
 #[tokio::main]
 async fn main() {
@@ -16,18 +17,13 @@ async fn main() {
     };
 
     let app = axum::Router::new()
-        .route("/api", get(api::health))
-        .route("/api/wah", post(api::wah))
-        .route("/api/notes", post(api::write_note))
-        .route("/api/notes", get(api::read_notes))
-        .route("/api/notes/:id", put(api::update_note))
-        .route("/api/notes/:id", delete(api::delete_note))
+        .nest("/api", api::routes())
         .with_state(pool);
 
-    let addr: std::net::SocketAddr = ([127, 0, 0, 1], 42069).into();
+    let addr: SocketAddr = SocketAddr::from(([127, 0, 0, 1], 42069));
     let server = axum::Server::bind(&addr).serve(app.into_make_service());
 
-    println!("\nsumire is alive @ http://{}/api\n", server.local_addr());
+    println!("\nsumire is alive @ http://{}/api/\n", server.local_addr());
 
     server.await.expect("sumire died");
 }

@@ -1,18 +1,10 @@
-pub async fn health() -> &'static str {
-    "sumire is alive"
-}
-
-/* mod api;
- *
- * mod file_name;
- * pub use file_name::function_name;
- */
-
-mod wah;
-pub use wah::wah;
-
+mod health;
 mod notes;
-pub use notes::delete_note;
-pub use notes::read_notes;
-pub use notes::update_note;
-pub use notes::write_note;
+mod wah;
+
+pub fn routes() -> axum::Router<sqlx::Pool<sqlx::MySql>, axum::body::Body> {
+    axum::Router::new()
+        .merge(health::routes())
+        .merge(wah::routes())
+        .merge(notes::routes())
+}

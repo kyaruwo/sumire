@@ -1,5 +1,10 @@
-use axum::Json;
+use axum::{body::Body, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
+use sqlx::{MySql, Pool};
+
+pub fn routes() -> Router<Pool<MySql>, Body> {
+    Router::new().route("/wah", post(wah))
+}
 
 #[derive(Deserialize)]
 pub struct WahIn {
