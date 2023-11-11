@@ -1,3 +1,4 @@
+use axum::{Router, Server};
 use sqlx::{mysql::MySqlPoolOptions, MySql, Pool};
 use std::net::SocketAddr;
 
@@ -16,12 +17,10 @@ async fn main() {
         Err(e) => return eprintln!("{e}"),
     };
 
-    let app = axum::Router::new()
-        .nest("/api", api::routes())
-        .with_state(pool);
+    let app = Router::new().nest("/api", api::routes()).with_state(pool);
 
     let addr: SocketAddr = SocketAddr::from(([127, 0, 0, 1], 42069));
-    let server = axum::Server::bind(&addr).serve(app.into_make_service());
+    let server = Server::bind(&addr).serve(app.into_make_service());
 
     println!("\nsumire is alive @ http://{}/api/\n", server.local_addr());
 
