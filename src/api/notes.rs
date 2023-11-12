@@ -1,6 +1,6 @@
 use axum::{
     body::Body,
-    extract::{Path, State},
+    extract::{DefaultBodyLimit, Path, State},
     http::StatusCode,
     routing::{delete, get, post, put},
     Json, Router,
@@ -14,6 +14,7 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
         .route("/notes", get(read_notes))
         .route("/notes/:id", put(update_note))
         .route("/notes/:id", delete(delete_note))
+        .layer(DefaultBodyLimit::max(420))
 }
 
 #[derive(Deserialize)]
