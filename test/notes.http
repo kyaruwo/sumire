@@ -1,14 +1,3 @@
-### health
-GET http://127.0.0.1:42069/api/health
-
-### wah
-POST http://127.0.0.1:42069/api/wah
-content-type: application/json
-
-{
-    "wah": true
-}
-
 ### create_note
 POST http://127.0.0.1:42069/api/notes
 content-type: application/json
