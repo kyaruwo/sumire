@@ -22,7 +22,7 @@ async fn main() {
     let addr: SocketAddr = SocketAddr::from(([127, 0, 0, 1], 42069));
     let server = Server::bind(&addr).serve(app.into_make_service());
 
-    println!("\nsumire is alive @ http://{}/api/\n", server.local_addr());
+    println!("\nsumire is alive @ http://{}/api\n", server.local_addr());
 
     server.await.expect("sumire died");
 }
