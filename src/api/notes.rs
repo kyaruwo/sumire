@@ -76,8 +76,8 @@ pub async fn update_note(
     Json(payload): Json<WriteNote>,
 ) -> StatusCode {
     let res: MySqlQueryResult = match sqlx::query("UPDATE Notes SET title=?, body=? WHERE id=?;")
-        .bind(&payload.title)
-        .bind(&payload.body)
+        .bind(payload.title)
+        .bind(payload.body)
         .bind(id)
         .execute(&pool)
         .await
