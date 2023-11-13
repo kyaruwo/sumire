@@ -4,5 +4,5 @@ use sumire;
 CREATE TABLE Notes (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(69),
-    body text
+    body TEXT
 );
