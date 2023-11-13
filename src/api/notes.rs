@@ -91,7 +91,12 @@ async fn update_note(
     State(pool): State<Pool<MySql>>,
     Path(id): Path<u64>,
     Json(payload): Json<WriteNote>,
-) -> StatusCode {
+) -> Result<StatusCode, (StatusCode, String)> {
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::BAD_REQUEST, e.to_string())),
+        _ => (),
+    };
+
     let res: MySqlQueryResult = match sqlx::query("UPDATE Notes SET title=?, body=? WHERE id=?;")
         .bind(payload.title)
         .bind(payload.body)
@@ -102,12 +107,12 @@ async fn update_note(
         Ok(res) => res,
         Err(e) => {
             eprintln!("{e}");
-            return StatusCode::INTERNAL_SERVER_ERROR;
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, String::new()));
         }
     };
     match res.rows_affected() {
-        1 => StatusCode::OK,
-        _ => StatusCode::NOT_FOUND,
+        1 => Ok(StatusCode::OK),
+        _ => Ok(StatusCode::NOT_FOUND),
     }
 }
 
