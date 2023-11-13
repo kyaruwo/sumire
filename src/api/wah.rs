@@ -9,16 +9,16 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
 }
 
 #[derive(Deserialize)]
-pub struct WahIn {
+struct WahIn {
     wah: bool,
 }
 
 #[derive(Serialize)]
-pub struct WahOut {
+struct WahOut {
     data: String,
 }
 
-pub async fn wah(Json(payload): Json<WahIn>) -> Json<WahOut> {
+async fn wah(Json(payload): Json<WahIn>) -> Json<WahOut> {
     let mut wah: WahOut = WahOut {
         data: String::new(),
     };

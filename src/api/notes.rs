@@ -18,19 +18,19 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
 }
 
 #[derive(Deserialize)]
-pub struct WriteNote {
+struct WriteNote {
     title: String,
     body: String,
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
-pub struct Note {
+struct Note {
     id: u64,
     title: String,
     body: String,
 }
 
-pub async fn write_note(
+async fn write_note(
     State(pool): State<Pool<MySql>>,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>), StatusCode> {
@@ -56,7 +56,7 @@ pub async fn write_note(
     ))
 }
 
-pub async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, StatusCode> {
+async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, StatusCode> {
     let notes: Vec<Note> = match sqlx::query_as::<_, Note>("SELECT * FROM Notes;")
         .fetch_all(&pool)
         .await
@@ -70,7 +70,7 @@ pub async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note
     Ok(Json(notes))
 }
 
-pub async fn update_note(
+async fn update_note(
     State(pool): State<Pool<MySql>>,
     Path(id): Path<u64>,
     Json(payload): Json<WriteNote>,
@@ -94,7 +94,7 @@ pub async fn update_note(
     }
 }
 
-pub async fn delete_note(State(pool): State<Pool<MySql>>, Path(id): Path<u64>) -> StatusCode {
+async fn delete_note(State(pool): State<Pool<MySql>>, Path(id): Path<u64>) -> StatusCode {
     let res: MySqlQueryResult = match sqlx::query("DELETE FROM Notes WHERE id=?;")
         .bind(id)
         .execute(&pool)
