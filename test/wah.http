@@ -1,5 +1,7 @@
+@url = http://127.0.0.1:42069/api
+
 ### wah
-POST http://127.0.0.1:42069/api/wah
+POST {{url}}/wah
 content-type: application/json
 
 {

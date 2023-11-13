@@ -1,5 +1,7 @@
+@url = http://127.0.0.1:42069/api
+
 ### create_note
-POST http://127.0.0.1:42069/api/notes
+POST {{url}}/notes
 content-type: application/json
 
 {
@@ -8,10 +10,10 @@ content-type: application/json
 }
 
 ### read_notes
-GET http://127.0.0.1:42069/api/notes
+GET {{url}}/notes
 
 ### update_note
-PUT http://127.0.0.1:42069/api/notes/1
+PUT {{url}}/notes/1
 content-type: application/json
 
 {
@@ -20,4 +22,4 @@ content-type: application/json
 }
 
 ### delete_note
-DELETE  http://127.0.0.1:42069/api/notes/1
+DELETE  {{url}}/notes/1
