@@ -9,6 +9,9 @@ content-type: application/json
     "body": "Ninomae Ina'nis is Cute"
 }
 
+### read_note
+GET {{url}}/notes/1
+
 ### read_notes
 GET {{url}}/notes
 

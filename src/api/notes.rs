@@ -14,6 +14,7 @@ use validator::{Validate, ValidationError};
 pub fn routes() -> Router<Pool<MySql>, Body> {
     Router::new()
         .route("/notes", post(write_note))
+        .route("/notes/:id", get(read_note))
         .route("/notes", get(read_notes))
         .route("/notes/:id", put(update_note))
         .route("/notes/:id", delete(delete_note))
@@ -75,6 +76,27 @@ async fn write_note(
     };
 
     Ok((StatusCode::CREATED, Json(note)))
+}
+
+async fn read_note(
+    State(pool): State<Pool<MySql>>,
+    Path(id): Path<u64>,
+) -> Result<Json<Note>, StatusCode> {
+    let res: Option<Note> = match sqlx::query_as::<_, Note>("SELECT * FROM Notes WHERE id=?;")
+        .bind(id)
+        .fetch_optional(&pool)
+        .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("{e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+    match res {
+        Some(note) => Ok(Json(note)),
+        None => return Err(StatusCode::NOT_FOUND),
+    }
 }
 
 async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, StatusCode> {
