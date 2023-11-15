@@ -2,11 +2,13 @@ use axum::{
     body::Body,
     extract::{DefaultBodyLimit, Path, State},
     http::StatusCode,
+    response::{IntoResponse, Response},
     routing::{delete, get, post, put},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
+use std::borrow::Cow;
 use validator::{Validate, ValidationError};
 
 pub fn routes() -> Router<Pool<MySql>, Body> {
@@ -20,24 +22,26 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
 
 #[derive(Deserialize, Validate)]
 struct WriteNote {
-    #[validate(custom = "empty_field")]
+    #[validate(custom = "empty_string")]
     title: String,
-    #[validate(custom = "empty_field")]
+    #[validate(custom = "empty_string")]
     body: String,
 }
 
 #[derive(Serialize, Deserialize, FromRow, Validate)]
 struct Note {
     id: u64,
-    #[validate(custom = "empty_field")]
+    #[validate(custom = "empty_string")]
     title: String,
-    #[validate(custom = "empty_field")]
+    #[validate(custom = "empty_string")]
     body: String,
 }
 
-fn empty_field(field: &String) -> Result<(), ValidationError> {
+fn empty_string(field: &String) -> Result<(), ValidationError> {
     if field.trim().is_empty() {
-        return Err(ValidationError::new("empty_field"));
+        let mut val_err: ValidationError = ValidationError::new("empty");
+        val_err.message = Some(Cow::from("empty_string"));
+        return Err(val_err);
     }
     Ok(())
 }
@@ -45,32 +49,32 @@ fn empty_field(field: &String) -> Result<(), ValidationError> {
 async fn write_note(
     State(pool): State<Pool<MySql>>,
     Json(payload): Json<WriteNote>,
-) -> Result<(StatusCode, Json<Note>), (StatusCode, String)> {
+) -> Result<(StatusCode, Json<Note>), Response> {
     match payload.validate() {
-        Err(e) => return Err((StatusCode::BAD_REQUEST, e.to_string())),
+        Err(e) => return Err(Json(e).into_response()),
         _ => (),
     };
 
-    let id: u64 = match sqlx::query("INSERT INTO Notes (title, body) values (?, ?);")
-        .bind(&payload.title)
-        .bind(&payload.body)
+    let mut note: Note = Note {
+        id: 0,
+        title: payload.title,
+        body: payload.body,
+    };
+
+    note.id = match sqlx::query("INSERT INTO Notes (title, body) values (?, ?);")
+        .bind(&note.title)
+        .bind(&note.body)
         .execute(&pool)
         .await
     {
         Ok(res) => res.last_insert_id(),
         Err(e) => {
             eprintln!("{e}");
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, String::new()));
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into_response());
         }
     };
-    Ok((
-        StatusCode::CREATED,
-        Json(Note {
-            id,
-            title: payload.title,
-            body: payload.body,
-        }),
-    ))
+
+    Ok((StatusCode::CREATED, Json(note)))
 }
 
 async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, StatusCode> {
@@ -91,9 +95,9 @@ async fn update_note(
     State(pool): State<Pool<MySql>>,
     Path(id): Path<u64>,
     Json(payload): Json<WriteNote>,
-) -> Result<StatusCode, (StatusCode, String)> {
+) -> Result<StatusCode, Response> {
     match payload.validate() {
-        Err(e) => return Err((StatusCode::BAD_REQUEST, e.to_string())),
+        Err(e) => return Err(Json(e).into_response()),
         _ => (),
     };
 
@@ -107,7 +111,7 @@ async fn update_note(
         Ok(res) => res,
         Err(e) => {
             eprintln!("{e}");
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, String::new()));
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into_response());
         }
     };
     match res.rows_affected() {
