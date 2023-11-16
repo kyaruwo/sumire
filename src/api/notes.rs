@@ -2,14 +2,14 @@ use axum::{
     body::Body,
     extract::{DefaultBodyLimit, Path, State},
     http::StatusCode,
-    response::{IntoResponse, Response},
+    response::{ErrorResponse, Result},
     routing::{delete, get, post, put},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use std::borrow::Cow;
-use validator::{Validate, ValidationError};
+use validator::{Validate, ValidationError, ValidationErrors};
 
 pub fn routes() -> Router<Pool<MySql>, Body> {
     Router::new()
@@ -47,12 +47,16 @@ fn empty_string(field: &String) -> Result<(), ValidationError> {
     Ok(())
 }
 
+fn val_err_json(e: ValidationErrors) -> ErrorResponse {
+    ErrorResponse::from((StatusCode::BAD_REQUEST, Json(e)))
+}
+
 async fn write_note(
     State(pool): State<Pool<MySql>>,
     Json(payload): Json<WriteNote>,
-) -> Result<(StatusCode, Json<Note>), Response> {
+) -> Result<(StatusCode, Json<Note>)> {
     match payload.validate() {
-        Err(e) => return Err(Json(e).into_response()),
+        Err(e) => return Err(val_err_json(e)),
         _ => (),
     };
 
@@ -71,7 +75,7 @@ async fn write_note(
         Ok(res) => res.last_insert_id(),
         Err(e) => {
             eprintln!("{e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR.into_response());
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
 
@@ -93,9 +97,10 @@ async fn read_note(
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
+
     match res {
         Some(note) => Ok(Json(note)),
-        None => return Err(StatusCode::NOT_FOUND),
+        None => Err(StatusCode::NOT_FOUND),
     }
 }
 
@@ -110,6 +115,7 @@ async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, 
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
+
     Ok(Json(notes))
 }
 
@@ -117,28 +123,35 @@ async fn update_note(
     State(pool): State<Pool<MySql>>,
     Path(id): Path<u64>,
     Json(payload): Json<WriteNote>,
-) -> Result<StatusCode, Response> {
+) -> Result<(StatusCode, Json<Note>)> {
     match payload.validate() {
-        Err(e) => return Err(Json(e).into_response()),
+        Err(e) => return Err(val_err_json(e)),
         _ => (),
     };
 
+    let note: Note = Note {
+        id,
+        title: payload.title,
+        body: payload.body,
+    };
+
     let res: MySqlQueryResult = match sqlx::query("UPDATE Notes SET title=?, body=? WHERE id=?;")
-        .bind(payload.title)
-        .bind(payload.body)
-        .bind(id)
+        .bind(&note.title)
+        .bind(&note.body)
+        .bind(&note.id)
         .execute(&pool)
         .await
     {
         Ok(res) => res,
         Err(e) => {
             eprintln!("{e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR.into_response());
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
+
     match res.rows_affected() {
-        1 => Ok(StatusCode::OK),
-        _ => Ok(StatusCode::NOT_FOUND),
+        1 => Ok((StatusCode::OK, Json(note))),
+        _ => Err(StatusCode::NOT_FOUND.into()),
     }
 }
 
@@ -154,6 +167,7 @@ async fn delete_note(State(pool): State<Pool<MySql>>, Path(id): Path<u64>) -> St
             return StatusCode::INTERNAL_SERVER_ERROR;
         }
     };
+
     match res.rows_affected() {
         1 => StatusCode::OK,
         _ => StatusCode::NOT_FOUND,
