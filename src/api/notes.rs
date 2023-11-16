@@ -2,14 +2,13 @@ use axum::{
     body::Body,
     extract::{DefaultBodyLimit, Path, State},
     http::StatusCode,
-    response::{ErrorResponse, Result},
+    response::Result,
     routing::{delete, get, post, put},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
-use std::borrow::Cow;
-use validator::{Validate, ValidationError, ValidationErrors};
+use validator::{Validate, ValidationError};
 
 pub fn routes() -> Router<Pool<MySql>, Body> {
     Router::new()
@@ -41,14 +40,10 @@ struct Note {
 fn empty_string(field: &String) -> Result<(), ValidationError> {
     if field.trim().is_empty() {
         let mut val_err: ValidationError = ValidationError::new("empty");
-        val_err.message = Some(Cow::from("empty_string"));
+        val_err.message = Some(std::borrow::Cow::from("empty_string"));
         return Err(val_err);
     }
     Ok(())
-}
-
-fn val_err_json(e: ValidationErrors) -> ErrorResponse {
-    ErrorResponse::from((StatusCode::BAD_REQUEST, Json(e)))
 }
 
 async fn write_note(
@@ -56,7 +51,7 @@ async fn write_note(
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
     match payload.validate() {
-        Err(e) => return Err(val_err_json(e)),
+        Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
         _ => (),
     };
 
@@ -125,7 +120,7 @@ async fn update_note(
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
     match payload.validate() {
-        Err(e) => return Err(val_err_json(e)),
+        Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
         _ => (),
     };
 
