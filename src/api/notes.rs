@@ -38,12 +38,13 @@ struct Note {
 }
 
 fn empty_string(field: &String) -> Result<(), ValidationError> {
-    if field.trim().is_empty() {
-        let mut val_err: ValidationError = ValidationError::new("empty");
-        val_err.message = Some(std::borrow::Cow::from("empty_string"));
-        return Err(val_err);
+    if !field.trim().is_empty() {
+        return Ok(());
     }
-    Ok(())
+
+    let mut val_err: ValidationError = ValidationError::new("empty");
+    val_err.message = Some(std::borrow::Cow::from("empty_string"));
+    Err(val_err)
 }
 
 async fn write_note(
@@ -57,8 +58,8 @@ async fn write_note(
 
     let mut note: Note = Note {
         id: 0,
-        title: payload.title,
-        body: payload.body,
+        title: String::from(payload.title.trim()),
+        body: String::from(payload.body.trim()),
     };
 
     note.id = match sqlx::query("INSERT INTO Notes (title, body) values (?, ?);")
@@ -126,8 +127,8 @@ async fn update_note(
 
     let note: Note = Note {
         id,
-        title: payload.title,
-        body: payload.body,
+        title: String::from(payload.title.trim()),
+        body: String::from(payload.body.trim()),
     };
 
     let res: MySqlQueryResult = match sqlx::query("UPDATE Notes SET title=?, body=? WHERE id=?;")
