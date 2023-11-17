@@ -17,23 +17,23 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
         .route("/notes", get(read_notes))
         .route("/notes/:id", put(update_note))
         .route("/notes/:id", delete(delete_note))
-        .layer(DefaultBodyLimit::max(420))
+        .layer(DefaultBodyLimit::max(690))
 }
 
 #[derive(Deserialize, Validate)]
 struct WriteNote {
-    #[validate(custom = "empty_string")]
+    #[validate(custom = "empty_string", length(max = 42, message = "max_string"))]
     title: String,
-    #[validate(custom = "empty_string")]
+    #[validate(custom = "empty_string", length(max = 420, message = "max_string"))]
     body: String,
 }
 
 #[derive(Serialize, Deserialize, FromRow, Validate)]
 struct Note {
     id: u64,
-    #[validate(custom = "empty_string")]
+    #[validate(custom = "empty_string", length(max = 42, message = "max_string"))]
     title: String,
-    #[validate(custom = "empty_string")]
+    #[validate(custom = "empty_string", length(max = 420, message = "max_string"))]
     body: String,
 }
 
