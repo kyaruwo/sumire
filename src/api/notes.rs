@@ -22,29 +22,38 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
 
 #[derive(Deserialize, Validate)]
 struct WriteNote {
-    #[validate(custom = "empty_string", length(max = 42, message = "max_string"))]
+    #[validate(
+        custom(function = "empty_string", message = "empty_string"),
+        length(max = 42, message = "max_string")
+    )]
     title: String,
-    #[validate(custom = "empty_string", length(max = 420, message = "max_string"))]
+    #[validate(
+        custom(function = "empty_string", message = "empty_string"),
+        length(max = 420, message = "max_string")
+    )]
     body: String,
 }
 
 #[derive(Serialize, Deserialize, FromRow, Validate)]
 struct Note {
     id: u64,
-    #[validate(custom = "empty_string", length(max = 42, message = "max_string"))]
+    #[validate(
+        custom(function = "empty_string", message = "empty_string"),
+        length(max = 42, message = "max_string")
+    )]
     title: String,
-    #[validate(custom = "empty_string", length(max = 420, message = "max_string"))]
+    #[validate(
+        custom(function = "empty_string", message = "empty_string"),
+        length(max = 420, message = "max_string")
+    )]
     body: String,
 }
 
 fn empty_string(field: &String) -> Result<(), ValidationError> {
-    if !field.trim().is_empty() {
-        return Ok(());
+    if field.trim().is_empty() {
+        return Err(ValidationError::new("empty"));
     }
-
-    let mut val_err: ValidationError = ValidationError::new("empty");
-    val_err.message = Some(std::borrow::Cow::from("empty_string"));
-    Err(val_err)
+    Ok(())
 }
 
 async fn write_note(
