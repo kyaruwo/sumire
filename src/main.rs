@@ -1,4 +1,4 @@
-use axum::{Router, Server};
+use axum::{Extension, Router, Server};
 use sqlx::{mysql::MySqlPoolOptions, MySql, Pool};
 use std::net::SocketAddr;
 
@@ -13,6 +13,8 @@ async fn main() {
         .expect("\"SOCKET_ADDRESS\" is invalid, either IPv4 or IPv6");
     let database_url: String =
         dotenvy::var("DATABASE_URL").expect("\"DATABASE_URL\" is missing from \".env\" file");
+    let aes_key: String =
+        dotenvy::var("AES_KEY").expect("\"AES_KEY\" is missing from \".env\" file");
 
     let pool: Pool<MySql> = match MySqlPoolOptions::new()
         .max_connections(4)
@@ -23,7 +25,10 @@ async fn main() {
         Err(e) => return eprintln!("{e}"),
     };
 
-    let app = Router::new().nest("/api", api::routes()).with_state(pool);
+    let app = Router::new()
+        .nest("/api", api::routes())
+        .with_state(pool)
+        .layer(Extension(aes_key));
 
     let server = Server::bind(&socket_address).serve(app.into_make_service());
 

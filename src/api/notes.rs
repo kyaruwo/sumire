@@ -4,7 +4,7 @@ use axum::{
     http::StatusCode,
     response::Result,
     routing::{delete, get, post, put},
-    Json, Router,
+    Extension, Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
@@ -58,6 +58,7 @@ fn empty_string(field: &String) -> Result<(), ValidationError> {
 
 async fn write_note(
     State(pool): State<Pool<MySql>>,
+    Extension(aes_key): Extension<String>,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
     match payload.validate() {
@@ -71,11 +72,15 @@ async fn write_note(
         body: String::from(payload.body.trim()),
     };
 
-    note.id = match sqlx::query("INSERT INTO Notes (title, body) values (?, ?);")
-        .bind(&note.title)
-        .bind(&note.body)
-        .execute(&pool)
-        .await
+    note.id = match sqlx::query(
+        "INSERT INTO Notes (title, body) VALUES (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));",
+    )
+    .bind(&note.title)
+    .bind(&aes_key)
+    .bind(&note.body)
+    .bind(&aes_key)
+    .execute(&pool)
+    .await
     {
         Ok(res) => res.last_insert_id(),
         Err(e) => {
@@ -89,12 +94,17 @@ async fn write_note(
 
 async fn read_note(
     State(pool): State<Pool<MySql>>,
+    Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
 ) -> Result<Json<Note>, StatusCode> {
-    let res: Option<Note> = match sqlx::query_as::<_, Note>("SELECT * FROM Notes WHERE id=?;")
-        .bind(id)
-        .fetch_optional(&pool)
-        .await
+    let res: Option<Note> = match sqlx::query_as::<_, Note>(
+        "SELECT id, CONVERT(AES_DECRYPT(title, ?) USING utf8) as title, CONVERT(AES_DECRYPT(body, ?) USING utf8) as body FROM Notes WHERE id=?;",
+    )
+    .bind(&aes_key)
+    .bind(&aes_key)
+    .bind(id)
+    .fetch_optional(&pool)
+    .await
     {
         Ok(res) => res,
         Err(e) => {
@@ -109,10 +119,17 @@ async fn read_note(
     }
 }
 
-async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, StatusCode> {
-    let notes: Vec<Note> = match sqlx::query_as::<_, Note>("SELECT * FROM Notes;")
-        .fetch_all(&pool)
-        .await
+async fn read_notes(
+    State(pool): State<Pool<MySql>>,
+    Extension(aes_key): Extension<String>,
+) -> Result<Json<Vec<Note>>, StatusCode> {
+    let notes: Vec<Note> = match sqlx::query_as::<_, Note>(
+        "SELECT id, CONVERT(AES_DECRYPT(title, ?) USING utf8) as title, CONVERT(AES_DECRYPT(body, ?) USING utf8) as body FROM Notes;",
+    )
+    .bind(&aes_key)
+    .bind(&aes_key)
+    .fetch_all(&pool)
+    .await
     {
         Ok(res) => res,
         Err(e) => {
@@ -126,6 +143,7 @@ async fn read_notes(State(pool): State<Pool<MySql>>) -> Result<Json<Vec<Note>>, 
 
 async fn update_note(
     State(pool): State<Pool<MySql>>,
+    Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
@@ -140,12 +158,16 @@ async fn update_note(
         body: String::from(payload.body.trim()),
     };
 
-    let res: MySqlQueryResult = match sqlx::query("UPDATE Notes SET title=?, body=? WHERE id=?;")
-        .bind(&note.title)
-        .bind(&note.body)
-        .bind(&note.id)
-        .execute(&pool)
-        .await
+    let res: MySqlQueryResult = match sqlx::query(
+        "UPDATE Notes SET title=AES_ENCRYPT(?, ?), body=AES_ENCRYPT(?, ?) WHERE id=?;",
+    )
+    .bind(&note.title)
+    .bind(&aes_key)
+    .bind(&note.body)
+    .bind(&aes_key)
+    .bind(&note.id)
+    .execute(&pool)
+    .await
     {
         Ok(res) => res,
         Err(e) => {
