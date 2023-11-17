@@ -6,11 +6,17 @@ mod api;
 
 #[tokio::main]
 async fn main() {
-    const DATABASE_URL: &str = "mysql://sumire:wah@127.0.0.1/sumire";
+    dotenvy::dotenv().expect("\".env\" file is missing");
+    let socket_address: SocketAddr = dotenvy::var("SOCKET_ADDRESS")
+        .expect("\"SOCKET_ADDRESS\"  is missing from \".env\" file")
+        .parse()
+        .expect("\"SOCKET_ADDRESS\" is invalid, either IPv4 or IPv6");
+    let database_url: String =
+        dotenvy::var("DATABASE_URL").expect("\"DATABASE_URL\" is missing from \".env\" file");
 
     let pool: Pool<MySql> = match MySqlPoolOptions::new()
         .max_connections(4)
-        .connect(DATABASE_URL)
+        .connect(&database_url)
         .await
     {
         Ok(pool) => pool,
@@ -19,8 +25,7 @@ async fn main() {
 
     let app = Router::new().nest("/api", api::routes()).with_state(pool);
 
-    let addr: SocketAddr = SocketAddr::from(([127, 0, 0, 1], 42069));
-    let server = Server::bind(&addr).serve(app.into_make_service());
+    let server = Server::bind(&socket_address).serve(app.into_make_service());
 
     println!("\nsumire is alive @ http://{}/api\n", server.local_addr());
 
