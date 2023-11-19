@@ -15,17 +15,15 @@ struct WahIn {
 
 #[derive(Serialize)]
 struct WahOut {
-    data: String,
+    data: &'static str,
 }
 
 async fn wah(Json(payload): Json<WahIn>) -> Json<WahOut> {
-    let mut wah: WahOut = WahOut {
-        data: String::new(),
-    };
+    let mut wah: WahOut = WahOut { data: "" };
 
     wah.data = match payload.wah {
-        true => String::from("Ninomae Ina'nis is Cute"),
-        false => String::from("not so wah?"),
+        true => "Ninomae Ina'nis is Cute",
+        false => "not so wah?",
     };
 
     Json(wah)
