@@ -8,12 +8,15 @@ pub struct Config {
 
 pub fn load() -> Config {
     dotenvy::dotenv().expect("\".env\" file is missing");
+
     let socket_address: SocketAddr = dotenvy::var("SOCKET_ADDRESS")
         .expect("\"SOCKET_ADDRESS\"  is missing from \".env\" file")
         .parse()
         .expect("\"SOCKET_ADDRESS\" is invalid, either IPv4 or IPv6");
+
     let database_url: String =
         dotenvy::var("DATABASE_URL").expect("\"DATABASE_URL\" is missing from \".env\" file");
+
     let aes_key: String =
         dotenvy::var("AES_KEY").expect("\"AES_KEY\" is missing from \".env\" file");
 
