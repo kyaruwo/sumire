@@ -57,7 +57,7 @@ fn empty_string(field: &String) -> Result<(), ValidationError> {
 }
 
 async fn write_note(
-    State(pool): State<Pool<MySql>>,
+    State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
@@ -79,7 +79,7 @@ async fn write_note(
     .bind(&aes_key)
     .bind(&note.body)
     .bind(&aes_key)
-    .execute(&pool)
+    .execute(&db_pool)
     .await
     {
         Ok(res) => res.last_insert_id(),
@@ -93,7 +93,7 @@ async fn write_note(
 }
 
 async fn read_note(
-    State(pool): State<Pool<MySql>>,
+    State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
 ) -> Result<Json<Note>, StatusCode> {
@@ -103,7 +103,7 @@ async fn read_note(
     .bind(&aes_key)
     .bind(&aes_key)
     .bind(id)
-    .fetch_optional(&pool)
+    .fetch_optional(&db_pool)
     .await
     {
         Ok(res) => res,
@@ -120,7 +120,7 @@ async fn read_note(
 }
 
 async fn read_notes(
-    State(pool): State<Pool<MySql>>,
+    State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
 ) -> Result<Json<Vec<Note>>, StatusCode> {
     let notes: Vec<Note> = match sqlx::query_as::<_, Note>(
@@ -128,7 +128,7 @@ async fn read_notes(
     )
     .bind(&aes_key)
     .bind(&aes_key)
-    .fetch_all(&pool)
+    .fetch_all(&db_pool)
     .await
     {
         Ok(res) => res,
@@ -142,7 +142,7 @@ async fn read_notes(
 }
 
 async fn update_note(
-    State(pool): State<Pool<MySql>>,
+    State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
     Json(payload): Json<WriteNote>,
@@ -166,7 +166,7 @@ async fn update_note(
     .bind(&note.body)
     .bind(&aes_key)
     .bind(&note.id)
-    .execute(&pool)
+    .execute(&db_pool)
     .await
     {
         Ok(res) => res,
@@ -182,10 +182,10 @@ async fn update_note(
     }
 }
 
-async fn delete_note(State(pool): State<Pool<MySql>>, Path(id): Path<u64>) -> StatusCode {
+async fn delete_note(State(db_pool): State<Pool<MySql>>, Path(id): Path<u64>) -> StatusCode {
     let res: MySqlQueryResult = match sqlx::query("DELETE FROM Notes WHERE id=?;")
         .bind(id)
-        .execute(&pool)
+        .execute(&db_pool)
         .await
     {
         Ok(res) => res,
