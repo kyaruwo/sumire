@@ -8,7 +8,9 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
-use validator::{Validate, ValidationError};
+use validator::Validate;
+
+use crate::api::validation::empty_string;
 
 pub fn routes() -> Router<Pool<MySql>, Body> {
     Router::new()
@@ -47,13 +49,6 @@ struct Note {
         length(max = 420, message = "max_string")
     )]
     body: String,
-}
-
-fn empty_string(field: &String) -> Result<(), ValidationError> {
-    if field.trim().is_empty() {
-        return Err(ValidationError::new("empty"));
-    }
-    Ok(())
 }
 
 async fn write_note(
