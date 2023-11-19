@@ -6,7 +6,7 @@ mod config;
 
 #[tokio::main]
 async fn main() {
-    let config = config::load();
+    let config: config::Config = config::load();
 
     let pool: Pool<MySql> = match MySqlPoolOptions::new()
         .max_connections(4)
