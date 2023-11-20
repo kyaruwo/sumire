@@ -7,13 +7,20 @@ authors = ["kyaruwo"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+# core
 tokio = { version = "1.33.0", features = ["full"] }
 axum = "0.6.20"
-serde = { version = "1.0.192", features = ["derive"] }
-validator = { version = "0.16.1", features = ["derive"] }
 sqlx = { version = "0.7.2", features = [
     "mysql",
     "runtime-tokio",
     "tls-rustls",
 ] }
+
+# data
+serde = { version = "1.0.192", features = ["derive"] }
+validator = { version = "0.16.1", features = ["derive"] }
+argon2 = "0.5.2"
+
+# util
 dotenvy = "0.15.7"

@@ -1,0 +1,19 @@
+@url = http://127.0.0.1:42069/api
+
+### register
+POST {{url}}/users/register
+content-type: application/json
+
+{
+    "name": "kyaruwo",
+    "password": "ninomae_ina'nis"
+}
+
+### login
+POST {{url}}/users/login
+content-type: application/json
+
+{
+    "name": "kyaruwo",
+    "password": "ninomae_ina'nis"
+}
