@@ -94,6 +94,7 @@ async fn login(
         _ => (),
     };
 
+    // verify name
     let password_hash: String = match sqlx::query_as::<_, User>(
         "SELECT CONVERT(AES_DECRYPT(`name`, ?) USING utf8) as `name`, CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password` FROM Users WHERE `name`=AES_ENCRYPT(?, ?);",
     )
@@ -113,6 +114,8 @@ async fn login(
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
+
+    // verify password
     let password_hash: PasswordHash<'_> = match PasswordHash::new(&password_hash) {
         Ok(password_hash) => password_hash,
         Err(e) => {
@@ -120,7 +123,6 @@ async fn login(
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
-
     match Argon2::default().verify_password(payload.password.as_bytes(), &password_hash) {
         Ok(_) => Ok(StatusCode::OK),
         Err(_) => {
