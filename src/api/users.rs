@@ -125,8 +125,6 @@ async fn login(
     };
     match Argon2::default().verify_password(payload.password.as_bytes(), &password_hash) {
         Ok(_) => Ok(StatusCode::OK),
-        Err(_) => {
-            return Err(StatusCode::NOT_FOUND.into());
-        }
+        Err(_) => return Err(StatusCode::NOT_FOUND.into()),
     }
 }
