@@ -8,7 +8,7 @@ use axum::{
 };
 use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, MySql, Pool};
+use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::Validate;
 
 pub fn routes() -> Router<Pool<MySql>, Body> {
@@ -106,7 +106,7 @@ async fn login(
     )
     .bind(&aes_key)
     .bind(&aes_key)
-    .bind(payload.name)
+    .bind(&payload.name)
     .bind(&aes_key)
     .fetch_optional(&db_pool)
     .await
@@ -134,7 +134,29 @@ async fn login(
         Ok(_) => (),
     }
 
+    // generate token
     let token: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
 
-    Ok((StatusCode::OK, Json(Token { token })))
+    // update token
+    let res: MySqlQueryResult = match sqlx::query(
+        "UPDATE Users SET token=AES_ENCRYPT(?, ?) WHERE `name`=AES_ENCRYPT(?, ?);",
+    )
+    .bind(&token)
+    .bind(&aes_key)
+    .bind(&payload.name)
+    .bind(&aes_key)
+    .execute(&db_pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("{e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res.rows_affected() {
+        1 => Ok((StatusCode::OK, Json(Token { token }))),
+        _ => Err(StatusCode::NOT_FOUND.into()),
+    }
 }
