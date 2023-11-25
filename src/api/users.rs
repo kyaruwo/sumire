@@ -6,6 +6,7 @@ use axum::{
     body::Body, extract::State, http::StatusCode, response::Result, routing::post, Extension, Json,
     Router,
 };
+use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, MySql, Pool};
 use validator::Validate;
@@ -22,6 +23,11 @@ struct User {
     name: String,
     #[validate(length(min = 8, message = "min_string"))]
     password: String,
+}
+
+#[derive(Serialize)]
+struct Token {
+    token: String,
 }
 
 async fn register(
@@ -88,7 +94,7 @@ async fn login(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Json(payload): Json<User>,
-) -> Result<StatusCode> {
+) -> Result<(StatusCode, Json<Token>)> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
         _ => (),
@@ -124,7 +130,11 @@ async fn login(
         }
     };
     match Argon2::default().verify_password(payload.password.as_bytes(), &password_hash) {
-        Ok(_) => Ok(StatusCode::OK),
         Err(_) => return Err(StatusCode::NOT_FOUND.into()),
+        Ok(_) => (),
     }
+
+    let token: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
+
+    Ok((StatusCode::OK, Json(Token { token })))
 }

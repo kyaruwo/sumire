@@ -1569,6 +1569,7 @@ dependencies = [
  "argon2",
  "axum",
  "dotenvy",
+ "rand",
  "serde",
  "sqlx",
  "tokio",
