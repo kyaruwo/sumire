@@ -82,12 +82,12 @@ async fn register(
     .execute(&db_pool)
     .await
     {
-        Ok(_) => return Ok(StatusCode::CREATED),
+        Ok(_) => Ok(StatusCode::CREATED),
         Err(e) => {
             eprintln!("{e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+            Err(StatusCode::INTERNAL_SERVER_ERROR.into())
         }
-    };
+    }
 }
 
 async fn login(
