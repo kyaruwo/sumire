@@ -8,9 +8,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
-use validator::Validate;
-
-use crate::api::validation::empty_string;
+use validator::{Validate, ValidationError};
 
 pub fn routes() -> Router<Pool<MySql>, Body> {
     Router::new()
@@ -20,6 +18,13 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
         .route("/notes/:id", put(update_note))
         .route("/notes/:id", delete(delete_note))
         .layer(DefaultBodyLimit::max(690))
+}
+
+fn empty_string(field: &String) -> Result<(), ValidationError> {
+    if field.trim().is_empty() {
+        return Err(ValidationError::new("empty"));
+    }
+    Ok(())
 }
 
 #[derive(Deserialize, Validate)]
