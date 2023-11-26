@@ -30,13 +30,13 @@ fn empty_string(field: &String) -> Result<(), ValidationError> {
 #[derive(Deserialize, Validate)]
 struct WriteNote {
     #[validate(
-        custom(function = "empty_string", message = "empty_string"),
-        length(max = 42, message = "max_string")
+        custom(function = "empty_string", message = "empty_title"),
+        length(max = 42, message = "max_title")
     )]
     title: String,
     #[validate(
-        custom(function = "empty_string", message = "empty_string"),
-        length(max = 420, message = "max_string")
+        custom(function = "empty_string", message = "empty_body"),
+        length(max = 420, message = "max_body")
     )]
     body: String,
 }
