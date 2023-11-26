@@ -10,6 +10,7 @@ use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::Validate;
+use {lazy_static::lazy_static, regex::Regex};
 
 pub fn routes() -> Router<Pool<MySql>, Body> {
     Router::new()
@@ -17,11 +18,18 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
         .route("/users/login", post(login))
 }
 
+lazy_static! {
+    static ref USER_NAME: Regex = Regex::new(r"^[a-z]{4,20}$").expect("USER_NAME Regex Error");
+}
+
 #[derive(Serialize, Deserialize, FromRow, Validate)]
 struct User {
-    #[validate(length(min = 4, message = "min_string"))]
+    #[validate(
+        regex(path = "USER_NAME", code = "invalid", message = "invalid_name"),
+        length(min = 4, max = 20, message = "length_name")
+    )]
     name: String,
-    #[validate(length(min = 8, message = "min_string"))]
+    #[validate(length(min = 8, message = "length_password"))]
     password: String,
 }
 

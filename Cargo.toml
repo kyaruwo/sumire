@@ -23,5 +23,9 @@ validator = { version = "0.16.1", features = ["derive"] }
 argon2 = "0.5.2"
 rand = "0.8.5"
 
+# regex
+lazy_static = "1.4.0"
+regex = "1.10.2"
+
 # util
 dotenvy = "0.15.7"
