@@ -3,8 +3,12 @@ use argon2::{
     Argon2, PasswordHash, PasswordVerifier,
 };
 use axum::{
-    body::Body, extract::State, http::StatusCode, response::Result, routing::post, Extension, Json,
-    Router,
+    body::Body,
+    extract::{DefaultBodyLimit, State},
+    http::StatusCode,
+    response::Result,
+    routing::post,
+    Extension, Json, Router,
 };
 use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
@@ -16,6 +20,7 @@ pub fn routes() -> Router<Pool<MySql>, Body> {
     Router::new()
         .route("/users/register", post(register))
         .route("/users/login", post(login))
+        .layer(DefaultBodyLimit::max(142))
 }
 
 lazy_static! {
@@ -29,7 +34,7 @@ struct User {
         length(min = 4, max = 20, message = "length_name")
     )]
     name: String,
-    #[validate(length(min = 8, message = "length_password"))]
+    #[validate(length(min = 8, max = 69, message = "length_password"))]
     password: String,
 }
 
