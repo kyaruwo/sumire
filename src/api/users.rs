@@ -75,17 +75,12 @@ async fn register(
         }
     };
 
-    let user: User = User {
-        name: payload.name,
-        password: password_hash,
-    };
-
     match sqlx::query(
         "INSERT INTO Users (`name`, `password`) VALUES (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));",
     )
-    .bind(&user.name)
+    .bind(&payload.name)
     .bind(&aes_key)
-    .bind(&user.password)
+    .bind(&password_hash)
     .bind(&aes_key)
     .execute(&db_pool)
     .await
@@ -108,7 +103,6 @@ async fn login(
         _ => (),
     };
 
-    // verify name
     let password_hash: String = match sqlx::query_as::<_, User>(
         "SELECT CONVERT(AES_DECRYPT(`name`, ?) USING utf8) as `name`, CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password` FROM Users WHERE `name`=AES_ENCRYPT(?, ?);",
     )
@@ -129,7 +123,6 @@ async fn login(
         }
     };
 
-    // verify password
     let password_hash: PasswordHash<'_> = match PasswordHash::new(&password_hash) {
         Ok(password_hash) => password_hash,
         Err(e) => {
@@ -142,10 +135,8 @@ async fn login(
         Ok(_) => (),
     }
 
-    // generate token
     let token: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
 
-    // update token
     let res: MySqlQueryResult = match sqlx::query(
         "UPDATE Users SET token=AES_ENCRYPT(?, ?) WHERE `name`=AES_ENCRYPT(?, ?);",
     )
