@@ -27,14 +27,21 @@ lazy_static! {
     static ref USER_NAME: Regex = Regex::new(r"^[a-z]{4,20}$").expect("USER_NAME Regex Error");
 }
 
-#[derive(Serialize, Deserialize, FromRow, Validate)]
-struct User {
+#[derive(Deserialize, FromRow, Validate)]
+struct WriteUser {
     #[validate(
         regex(path = "USER_NAME", code = "invalid", message = "invalid_name"),
         length(min = 4, max = 20, message = "length_name")
     )]
     name: String,
     #[validate(length(min = 8, max = 69, message = "length_password"))]
+    password: String,
+}
+
+#[derive(Deserialize, FromRow)]
+struct User {
+    id: u64,
+    name: String,
     password: String,
 }
 
@@ -46,7 +53,7 @@ struct Token {
 async fn register(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Json(payload): Json<User>,
+    Json(payload): Json<WriteUser>,
 ) -> Result<StatusCode> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
@@ -90,7 +97,10 @@ async fn register(
     .execute(&db_pool)
     .await
     {
-        Ok(_) => Ok(StatusCode::CREATED),
+        Ok(res) => {
+            log(res.last_insert_id(), "register", &db_pool).await;
+            Ok(StatusCode::CREATED)
+        }
         Err(e) => {
             eprintln!("{e}");
             Err(StatusCode::INTERNAL_SERVER_ERROR.into())
@@ -101,15 +111,15 @@ async fn register(
 async fn login(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Json(payload): Json<User>,
+    Json(payload): Json<WriteUser>,
 ) -> Result<(StatusCode, Json<Token>)> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
         _ => (),
     };
 
-    let password_hash: String = match sqlx::query_as::<_, User>(
-        "SELECT CONVERT(AES_DECRYPT(`name`, ?) USING utf8) as `name`, CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password` FROM Users WHERE `name`=AES_ENCRYPT(?, ?);",
+    let user:User = match sqlx::query_as::<_, User>(
+        "SELECT id, CONVERT(AES_DECRYPT(`name`, ?) USING utf8) as `name`, CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password` FROM Users WHERE `name`=AES_ENCRYPT(?, ?);",
     )
     .bind(&aes_key)
     .bind(&aes_key)
@@ -119,7 +129,7 @@ async fn login(
     .await
     {
         Ok(res) => match res {
-            Some(user) => user.password,
+            Some(user) => user,
             None => return Err(StatusCode::NOT_FOUND.into()),
         },
         Err(e) => {
@@ -128,7 +138,7 @@ async fn login(
         }
     };
 
-    let password_hash: PasswordHash<'_> = match PasswordHash::new(&password_hash) {
+    let password_hash: PasswordHash<'_> = match PasswordHash::new(&user.password) {
         Ok(password_hash) => password_hash,
         Err(e) => {
             eprintln!("{e}");
@@ -160,7 +170,22 @@ async fn login(
     };
 
     match res.rows_affected() {
-        1 => Ok((StatusCode::OK, Json(Token { token }))),
+        1 => {
+            log(user.id, "login", &db_pool).await;
+            Ok((StatusCode::OK, Json(Token { token })))
+        }
         _ => Err(StatusCode::NOT_FOUND.into()),
+    }
+}
+
+async fn log(user_id: u64, action: &str, db_pool: &Pool<MySql>) {
+    match sqlx::query("INSERT INTO Logs (`user_id`, `action`) VALUES (?, ?);")
+        .bind(user_id)
+        .bind(action)
+        .execute(db_pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
     }
 }
