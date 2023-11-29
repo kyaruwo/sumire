@@ -27,8 +27,8 @@ lazy_static! {
     static ref USER_NAME: Regex = Regex::new(r"^[a-z]{4,20}$").expect("USER_NAME Regex Error");
 }
 
-#[derive(Deserialize, FromRow, Validate)]
-struct WriteUser {
+#[derive(Deserialize, Validate)]
+struct User {
     #[validate(
         regex(path = "USER_NAME", code = "invalid", message = "invalid_name"),
         length(min = 4, max = 20, message = "length_name")
@@ -38,11 +38,10 @@ struct WriteUser {
     password: String,
 }
 
-#[derive(Deserialize, FromRow)]
-struct User {
+#[derive(FromRow)]
+struct Password {
     id: u64,
-    name: String,
-    password: String,
+    password_hash: String,
 }
 
 #[derive(Serialize)]
@@ -53,7 +52,7 @@ struct Token {
 async fn register(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Json(payload): Json<WriteUser>,
+    Json(payload): Json<User>,
 ) -> Result<StatusCode> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
@@ -111,17 +110,16 @@ async fn register(
 async fn login(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Json(payload): Json<WriteUser>,
+    Json(payload): Json<User>,
 ) -> Result<(StatusCode, Json<Token>)> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
         _ => (),
     };
 
-    let user:User = match sqlx::query_as::<_, User>(
-        "SELECT id, CONVERT(AES_DECRYPT(`name`, ?) USING utf8) as `name`, CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password` FROM Users WHERE `name`=AES_ENCRYPT(?, ?);",
+    let user: Password = match sqlx::query_as::<_, Password>(
+        "SELECT id, CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password_hash` FROM Users WHERE `name`=AES_ENCRYPT(?, ?);",
     )
-    .bind(&aes_key)
     .bind(&aes_key)
     .bind(&payload.name)
     .bind(&aes_key)
@@ -138,13 +136,14 @@ async fn login(
         }
     };
 
-    let password_hash: PasswordHash<'_> = match PasswordHash::new(&user.password) {
+    let password_hash: PasswordHash<'_> = match PasswordHash::new(&user.password_hash) {
         Ok(password_hash) => password_hash,
         Err(e) => {
             eprintln!("{e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
+
     match Argon2::default().verify_password(payload.password.as_bytes(), &password_hash) {
         Err(_) => return Err(StatusCode::NOT_FOUND.into()),
         Ok(_) => (),
