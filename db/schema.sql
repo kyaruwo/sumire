@@ -3,7 +3,7 @@ CREATE DATABASE sumire;
 use sumire;
 CREATE TABLE Users(
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    token BLOB UNIQUE NOT NULL,
+    token BLOB,
     `name` BLOB UNIQUE NOT NULL,
     `password` BLOB NOT NULL
 );
