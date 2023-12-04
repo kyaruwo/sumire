@@ -3,7 +3,7 @@ mod notes;
 mod users;
 mod wah;
 
-pub fn routes() -> axum::Router<sqlx::Pool<sqlx::MySql>, axum::body::Body> {
+pub fn routes() -> axum::Router<sqlx::Pool<sqlx::MySql>> {
     axum::Router::new()
         .merge(health::routes())
         .merge(wah::routes())

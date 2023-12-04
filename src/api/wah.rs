@@ -1,8 +1,8 @@
-use axum::{body::Body, extract::DefaultBodyLimit, routing::post, Json, Router};
+use axum::{extract::DefaultBodyLimit, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use sqlx::{MySql, Pool};
 
-pub fn routes() -> Router<Pool<MySql>, Body> {
+pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/wah", post(wah))
         .layer(DefaultBodyLimit::max(22))

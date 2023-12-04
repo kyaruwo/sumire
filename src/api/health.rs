@@ -1,7 +1,7 @@
-use axum::{body::Body, http::StatusCode, routing::get, Router};
+use axum::{http::StatusCode, routing::get, Router};
 use sqlx::{MySql, Pool};
 
-pub fn routes() -> Router<Pool<MySql>, Body> {
+pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/", get(health))
         .route("/health", get(health))

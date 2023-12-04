@@ -3,7 +3,6 @@ use argon2::{
     Argon2, PasswordHash, PasswordVerifier,
 };
 use axum::{
-    body::Body,
     extract::{DefaultBodyLimit, State},
     http::StatusCode,
     response::Result,
@@ -16,7 +15,7 @@ use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::Validate;
 use {lazy_static::lazy_static, regex::Regex};
 
-pub fn routes() -> Router<Pool<MySql>, Body> {
+pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/users/register", post(register))
         .route("/users/login", post(login))

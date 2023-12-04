@@ -1,5 +1,4 @@
 use axum::{
-    body::Body,
     extract::{DefaultBodyLimit, Path, State},
     http::StatusCode,
     response::Result,
@@ -10,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::{Validate, ValidationError};
 
-pub fn routes() -> Router<Pool<MySql>, Body> {
+pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/notes", post(write_note))
         .route("/notes/:id", get(read_note))
