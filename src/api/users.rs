@@ -22,6 +22,18 @@ pub fn routes() -> Router<Pool<MySql>> {
         .layer(DefaultBodyLimit::max(142))
 }
 
+async fn log(user_id: u64, action: &str, db_pool: &Pool<MySql>) {
+    match sqlx::query("INSERT INTO Logs (`user_id`, `action`) VALUES (?, ?);")
+        .bind(user_id)
+        .bind(action)
+        .execute(db_pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
+}
+
 lazy_static! {
     static ref USER_NAME: Regex = Regex::new(r"^[a-z]{4,20}$").expect("USER_NAME Regex Error");
 }
@@ -173,17 +185,5 @@ async fn login(
             Ok((StatusCode::OK, Json(Token { token })))
         }
         _ => Err(StatusCode::NOT_FOUND.into()),
-    }
-}
-
-async fn log(user_id: u64, action: &str, db_pool: &Pool<MySql>) {
-    match sqlx::query("INSERT INTO Logs (`user_id`, `action`) VALUES (?, ?);")
-        .bind(user_id)
-        .bind(action)
-        .execute(db_pool)
-        .await
-    {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
     }
 }
