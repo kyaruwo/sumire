@@ -6,8 +6,8 @@ use sumire;
 
 CREATE TABLE Users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    token BLOB,
-    `name` BLOB UNIQUE NOT NULL,
+    token VARBINARY(432) UNIQUE,
+    `name` VARBINARY(32) UNIQUE NOT NULL,
     `password` BLOB NOT NULL
 );
 
