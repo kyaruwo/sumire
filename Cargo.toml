@@ -31,3 +31,6 @@ argon2 = "0.5.2"
 # util
 dotenvy = "0.15.7"
 rand = "0.8.5"
+
+# patch
+zerocopy = "0.7.31"
