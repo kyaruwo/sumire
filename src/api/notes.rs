@@ -72,7 +72,12 @@ async fn write_note(
     };
 
     note.id = match sqlx::query(
-        "INSERT INTO Notes (title, body) VALUES (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));",
+        "
+        INSERT INTO
+            Notes (title, body)
+        VALUES
+            (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));
+        ",
     )
     .bind(&note.title)
     .bind(&aes_key)
@@ -97,7 +102,16 @@ async fn read_note(
     Path(id): Path<u64>,
 ) -> Result<Json<Note>, StatusCode> {
     let res: Option<Note> = match sqlx::query_as::<_, Note>(
-        "SELECT id, CONVERT(AES_DECRYPT(title, ?) USING utf8) as title, CONVERT(AES_DECRYPT(body, ?) USING utf8) as body FROM Notes WHERE id=?;",
+        "
+        SELECT
+            id,
+            CONVERT(AES_DECRYPT(title, ?) USING utf8) as title,
+            CONVERT(AES_DECRYPT(body, ?) USING utf8) as body
+        FROM
+            Notes
+        WHERE
+            id = ?;
+        ",
     )
     .bind(&aes_key)
     .bind(&aes_key)
@@ -123,7 +137,14 @@ async fn read_notes(
     Extension(aes_key): Extension<String>,
 ) -> Result<Json<Vec<Note>>, StatusCode> {
     let notes: Vec<Note> = match sqlx::query_as::<_, Note>(
-        "SELECT id, CONVERT(AES_DECRYPT(title, ?) USING utf8) as title, CONVERT(AES_DECRYPT(body, ?) USING utf8) as body FROM Notes;",
+        "
+        SELECT
+            id,
+            CONVERT(AES_DECRYPT(title, ?) USING utf8) as title,
+            CONVERT(AES_DECRYPT(body, ?) USING utf8) as body
+        FROM
+            Notes;
+        ",
     )
     .bind(&aes_key)
     .bind(&aes_key)
@@ -158,7 +179,15 @@ async fn update_note(
     };
 
     let res: MySqlQueryResult = match sqlx::query(
-        "UPDATE Notes SET title=AES_ENCRYPT(?, ?), body=AES_ENCRYPT(?, ?) WHERE id=?;",
+        "
+        UPDATE
+            Notes
+        SET
+            title = AES_ENCRYPT(?, ?),
+            body = AES_ENCRYPT(?, ?)
+        WHERE
+            id = ?;
+        ",
     )
     .bind(&note.title)
     .bind(&aes_key)
@@ -182,10 +211,17 @@ async fn update_note(
 }
 
 async fn delete_note(State(db_pool): State<Pool<MySql>>, Path(id): Path<u64>) -> StatusCode {
-    let res: MySqlQueryResult = match sqlx::query("DELETE FROM Notes WHERE id=?;")
-        .bind(id)
-        .execute(&db_pool)
-        .await
+    let res: MySqlQueryResult = match sqlx::query(
+        "
+        DELETE FROM
+            Notes
+        WHERE
+            id = ?;
+        ",
+    )
+    .bind(id)
+    .execute(&db_pool)
+    .await
     {
         Ok(res) => res,
         Err(e) => {

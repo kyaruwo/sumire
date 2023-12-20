@@ -23,11 +23,18 @@ pub fn routes() -> Router<Pool<MySql>> {
 }
 
 async fn log(user_id: u64, action: &str, db_pool: &Pool<MySql>) {
-    match sqlx::query("INSERT INTO Logs (`user_id`, `action`) VALUES (?, ?);")
-        .bind(user_id)
-        .bind(action)
-        .execute(db_pool)
-        .await
+    match sqlx::query(
+        "
+        INSERT INTO
+            Logs (`user_id`, `action`)
+        VALUES
+            (?, ?);
+        ",
+    )
+    .bind(user_id)
+    .bind(action)
+    .execute(db_pool)
+    .await
     {
         Ok(_) => (),
         Err(e) => eprintln!("{e}"),
@@ -70,11 +77,20 @@ async fn register(
         _ => (),
     };
 
-    match sqlx::query("SELECT id FROM Users WHERE `name`=AES_ENCRYPT(?, ?);")
-        .bind(&payload.name)
-        .bind(&aes_key)
-        .fetch_optional(&db_pool)
-        .await
+    match sqlx::query(
+        "
+        SELECT
+            id
+        FROM
+            Users
+        WHERE
+            `name` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(&payload.name)
+    .bind(&aes_key)
+    .fetch_optional(&db_pool)
+    .await
     {
         Ok(res) => match res {
             Some(_) => return Err(StatusCode::CONFLICT.into()),
@@ -98,7 +114,12 @@ async fn register(
     };
 
     match sqlx::query(
-        "INSERT INTO Users (`name`, `password`) VALUES (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));",
+        "
+        INSERT INTO
+            Users (`name`, `password`)
+        VALUES
+            (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));
+        ",
     )
     .bind(&payload.name)
     .bind(&aes_key)
@@ -129,7 +150,15 @@ async fn login(
     };
 
     let user: Password = match sqlx::query_as::<_, Password>(
-        "SELECT id, CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password_hash` FROM Users WHERE `name`=AES_ENCRYPT(?, ?);",
+        "
+        SELECT
+            id,
+            CONVERT(AES_DECRYPT(`password`, ?) USING utf8) as `password_hash`
+        FROM
+            Users
+        WHERE
+            `name` = AES_ENCRYPT(?, ?);
+        ",
     )
     .bind(&aes_key)
     .bind(&payload.name)
@@ -163,7 +192,14 @@ async fn login(
     let token: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
 
     let res: MySqlQueryResult = match sqlx::query(
-        "UPDATE Users SET token=AES_ENCRYPT(?, ?) WHERE `name`=AES_ENCRYPT(?, ?);",
+        "
+        UPDATE
+            Users
+        SET
+            token = AES_ENCRYPT(?, ?)
+        WHERE
+            `name` = AES_ENCRYPT(?, ?);
+        ",
     )
     .bind(&token)
     .bind(&aes_key)
