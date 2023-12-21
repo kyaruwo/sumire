@@ -1,7 +1,10 @@
 @url = http://127.0.0.1:42069/api
 
+@token = token
+
 ### create_note
 POST {{url}}/notes
+Authorization: Bearer {{token}}
 content-type: application/json
 
 {
@@ -11,12 +14,15 @@ content-type: application/json
 
 ### read_note
 GET {{url}}/notes/1
+Authorization: Bearer {{token}}
 
 ### read_notes
 GET {{url}}/notes
+Authorization: Bearer {{token}}
 
 ### update_note
 PUT {{url}}/notes/1
+Authorization: Bearer {{token}}
 content-type: application/json
 
 {
@@ -26,3 +32,4 @@ content-type: application/json
 
 ### delete_note
 DELETE  {{url}}/notes/1
+Authorization: Bearer {{token}}

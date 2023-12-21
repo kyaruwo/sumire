@@ -5,6 +5,10 @@ use axum::{
     routing::{delete, get, post, put},
     Extension, Json, Router,
 };
+use axum_extra::{
+    headers::{authorization::Bearer, Authorization},
+    TypedHeader,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::{Validate, ValidationError};
@@ -55,11 +59,51 @@ struct Note {
     body: String,
 }
 
+#[derive(FromRow)]
+struct User {
+    id: u64,
+}
+
+async fn get_user_id(auth_token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Result<u64> {
+    let res: Option<User> = match sqlx::query_as::<_, User>(
+        "
+        SELECT
+            id
+        FROM
+            Users
+        WHERE
+            token = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(auth_token)
+    .bind(aes_key)
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("{e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res {
+        Some(user) => Ok(user.id),
+        None => Err(StatusCode::UNAUTHORIZED.into()),
+    }
+}
+
 async fn write_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
+    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
+    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
     match payload.validate() {
         Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
         _ => (),
@@ -74,11 +118,12 @@ async fn write_note(
     note.id = match sqlx::query(
         "
         INSERT INTO
-            Notes (title, body)
+            Notes (`user_id`, title, body)
         VALUES
-            (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));
+            (?, AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));
         ",
     )
+    .bind(user_id)
     .bind(&note.title)
     .bind(&aes_key)
     .bind(&note.body)
