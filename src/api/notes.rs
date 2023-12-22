@@ -280,15 +280,27 @@ async fn update_note(
     }
 }
 
-async fn delete_note(State(db_pool): State<Pool<MySql>>, Path(id): Path<u64>) -> StatusCode {
+async fn delete_note(
+    State(db_pool): State<Pool<MySql>>,
+    Extension(aes_key): Extension<String>,
+    Path(id): Path<u64>,
+    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+) -> Result<StatusCode> {
+    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
     let res: MySqlQueryResult = match sqlx::query(
         "
         DELETE FROM
             Notes
         WHERE
-            id = ?;
+            `user_id` = ?
+            AND id = ?;
         ",
     )
+    .bind(user_id)
     .bind(id)
     .execute(&db_pool)
     .await
@@ -296,12 +308,12 @@ async fn delete_note(State(db_pool): State<Pool<MySql>>, Path(id): Path<u64>) ->
         Ok(res) => res,
         Err(e) => {
             eprintln!("{e}");
-            return StatusCode::INTERNAL_SERVER_ERROR;
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
 
     match res.rows_affected() {
-        1 => StatusCode::OK,
-        _ => StatusCode::NOT_FOUND,
+        1 => Ok(StatusCode::OK),
+        _ => Err(StatusCode::NOT_FOUND.into()),
     }
 }
