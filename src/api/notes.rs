@@ -227,8 +227,14 @@ async fn update_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
+    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
+    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
     match payload.validate() {
         Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
         _ => (),
@@ -248,13 +254,15 @@ async fn update_note(
             title = AES_ENCRYPT(?, ?),
             body = AES_ENCRYPT(?, ?)
         WHERE
-            id = ?;
+            `user_id` = ?
+            AND id = ?;
         ",
     )
     .bind(&note.title)
     .bind(&aes_key)
     .bind(&note.body)
     .bind(&aes_key)
+    .bind(user_id)
     .bind(&note.id)
     .execute(&db_pool)
     .await
