@@ -145,7 +145,13 @@ async fn read_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
-) -> Result<Json<Note>, StatusCode> {
+    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+) -> Result<Json<Note>> {
+    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
     let res: Option<Note> = match sqlx::query_as::<_, Note>(
         "
         SELECT
@@ -155,11 +161,13 @@ async fn read_note(
         FROM
             Notes
         WHERE
-            id = ?;
+            `user_id` = ?
+            AND id = ?;
         ",
     )
     .bind(&aes_key)
     .bind(&aes_key)
+    .bind(user_id)
     .bind(id)
     .fetch_optional(&db_pool)
     .await
@@ -167,20 +175,26 @@ async fn read_note(
         Ok(res) => res,
         Err(e) => {
             eprintln!("{e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
 
     match res {
         Some(note) => Ok(Json(note)),
-        None => Err(StatusCode::NOT_FOUND),
+        None => Err(StatusCode::NOT_FOUND.into()),
     }
 }
 
 async fn read_notes(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-) -> Result<Json<Vec<Note>>, StatusCode> {
+    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+) -> Result<Json<Vec<Note>>> {
+    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
     let notes: Vec<Note> = match sqlx::query_as::<_, Note>(
         "
         SELECT
@@ -188,18 +202,21 @@ async fn read_notes(
             CONVERT(AES_DECRYPT(title, ?) USING utf8) as title,
             CONVERT(AES_DECRYPT(body, ?) USING utf8) as body
         FROM
-            Notes;
+            Notes
+        WHERE
+            `user_id` = ?;
         ",
     )
     .bind(&aes_key)
     .bind(&aes_key)
+    .bind(user_id)
     .fetch_all(&db_pool)
     .await
     {
         Ok(res) => res,
         Err(e) => {
             eprintln!("{e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
 
