@@ -23,6 +23,40 @@ pub fn routes() -> Router<Pool<MySql>> {
         .layer(DefaultBodyLimit::max(690))
 }
 
+#[derive(FromRow)]
+struct UserID {
+    id: u64,
+}
+
+async fn get_user_id(auth_token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Result<u64> {
+    let res: Option<UserID> = match sqlx::query_as::<_, UserID>(
+        "
+        SELECT
+            id
+        FROM
+            Users
+        WHERE
+            token = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(auth_token)
+    .bind(aes_key)
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("{e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res {
+        Some(user) => Ok(user.id),
+        None => Err(StatusCode::UNAUTHORIZED.into()),
+    }
+}
+
 fn empty_string(field: &String) -> Result<(), ValidationError> {
     if field.trim().is_empty() {
         return Err(ValidationError::new("empty"));
@@ -57,40 +91,6 @@ struct Note {
         length(max = 420, message = "max_string")
     )]
     body: String,
-}
-
-#[derive(FromRow)]
-struct User {
-    id: u64,
-}
-
-async fn get_user_id(auth_token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Result<u64> {
-    let res: Option<User> = match sqlx::query_as::<_, User>(
-        "
-        SELECT
-            id
-        FROM
-            Users
-        WHERE
-            token = AES_ENCRYPT(?, ?);
-        ",
-    )
-    .bind(auth_token)
-    .bind(aes_key)
-    .fetch_optional(db_pool)
-    .await
-    {
-        Ok(res) => res,
-        Err(e) => {
-            eprintln!("{e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
-        }
-    };
-
-    match res {
-        Some(user) => Ok(user.id),
-        None => Err(StatusCode::UNAUTHORIZED.into()),
-    }
 }
 
 async fn write_note(
