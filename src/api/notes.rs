@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::{Validate, ValidationError};
 
+use super::log;
+
 pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/notes", post(write_note))
@@ -138,6 +140,7 @@ async fn write_note(
         }
     };
 
+    log::new(user_id, "write_note", &db_pool).await;
     Ok((StatusCode::CREATED, Json(note)))
 }
 
@@ -179,6 +182,7 @@ async fn read_note(
         }
     };
 
+    log::new(user_id, "read_note", &db_pool).await;
     match res {
         Some(note) => Ok(Json(note)),
         None => Err(StatusCode::NOT_FOUND.into()),
@@ -220,6 +224,7 @@ async fn read_notes(
         }
     };
 
+    log::new(user_id, "read_notes", &db_pool).await;
     Ok(Json(notes))
 }
 
@@ -274,6 +279,7 @@ async fn update_note(
         }
     };
 
+    log::new(user_id, "update_note", &db_pool).await;
     match res.rows_affected() {
         1 => Ok((StatusCode::OK, Json(note))),
         _ => Err(StatusCode::NOT_FOUND.into()),
@@ -312,6 +318,7 @@ async fn delete_note(
         }
     };
 
+    log::new(user_id, "delete_note", &db_pool).await;
     match res.rows_affected() {
         1 => Ok(StatusCode::OK),
         _ => Err(StatusCode::NOT_FOUND.into()),

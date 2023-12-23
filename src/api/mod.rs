@@ -1,4 +1,5 @@
 mod health;
+mod log;
 mod notes;
 mod users;
 mod wah;

@@ -15,30 +15,13 @@ use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::Validate;
 use {lazy_static::lazy_static, regex::Regex};
 
+use super::log;
+
 pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/users/register", post(register))
         .route("/users/login", post(login))
         .layer(DefaultBodyLimit::max(142))
-}
-
-async fn log(user_id: u64, action: &str, db_pool: &Pool<MySql>) {
-    match sqlx::query(
-        "
-        INSERT INTO
-            Logs (`user_id`, `action`)
-        VALUES
-            (?, ?);
-        ",
-    )
-    .bind(user_id)
-    .bind(action)
-    .execute(db_pool)
-    .await
-    {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
-    }
 }
 
 lazy_static! {
@@ -129,7 +112,7 @@ async fn register(
     .await
     {
         Ok(res) => {
-            log(res.last_insert_id(), "register", &db_pool).await;
+            log::new(res.last_insert_id(), "register", &db_pool).await;
             Ok(StatusCode::CREATED)
         }
         Err(e) => {
@@ -217,7 +200,7 @@ async fn login(
 
     match res.rows_affected() {
         1 => {
-            log(user.id, "login", &db_pool).await;
+            log::new(user.id, "login", &db_pool).await;
             Ok((StatusCode::OK, Json(Token { token })))
         }
         _ => Err(StatusCode::NOT_FOUND.into()),
