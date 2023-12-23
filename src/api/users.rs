@@ -112,7 +112,7 @@ async fn register(
     .await
     {
         Ok(res) => {
-            log::new(res.last_insert_id(), "register", &db_pool).await;
+            log::new(res.last_insert_id(), "register", "created", &db_pool).await;
             Ok(StatusCode::CREATED)
         }
         Err(e) => {
@@ -200,7 +200,7 @@ async fn login(
 
     match res.rows_affected() {
         1 => {
-            log::new(user.id, "login", &db_pool).await;
+            log::new(user.id, "login", "ok", &db_pool).await;
             Ok((StatusCode::OK, Json(Token { token })))
         }
         _ => Err(StatusCode::NOT_FOUND.into()),

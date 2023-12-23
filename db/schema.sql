@@ -21,6 +21,7 @@ CREATE TABLE Notes (
 CREATE TABLE Logs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `user_id` BIGINT NOT NULL,
-    `action` TEXT NOT NULL,
+    `request` TEXT NOT NULL,
+    `response` TEXT NOT NULL,
     `datetime` DATETIME DEFAULT CURRENT_TIMESTAMP
 );

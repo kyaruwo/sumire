@@ -140,7 +140,7 @@ async fn write_note(
         }
     };
 
-    log::new(user_id, "write_note", &db_pool).await;
+    log::new(user_id, "write_note", "ok", &db_pool).await;
     Ok((StatusCode::CREATED, Json(note)))
 }
 
@@ -182,10 +182,15 @@ async fn read_note(
         }
     };
 
-    log::new(user_id, "read_note", &db_pool).await;
     match res {
-        Some(note) => Ok(Json(note)),
-        None => Err(StatusCode::NOT_FOUND.into()),
+        Some(note) => {
+            log::new(user_id, "read_note", "ok", &db_pool).await;
+            Ok(Json(note))
+        }
+        None => {
+            log::new(user_id, "read_note", "not_found", &db_pool).await;
+            Err(StatusCode::NOT_FOUND.into())
+        }
     }
 }
 
@@ -224,7 +229,7 @@ async fn read_notes(
         }
     };
 
-    log::new(user_id, "read_notes", &db_pool).await;
+    log::new(user_id, "read_notes", "ok", &db_pool).await;
     Ok(Json(notes))
 }
 
@@ -279,10 +284,15 @@ async fn update_note(
         }
     };
 
-    log::new(user_id, "update_note", &db_pool).await;
     match res.rows_affected() {
-        1 => Ok((StatusCode::OK, Json(note))),
-        _ => Err(StatusCode::NOT_FOUND.into()),
+        1 => {
+            log::new(user_id, "update_note", "ok", &db_pool).await;
+            Ok((StatusCode::OK, Json(note)))
+        }
+        _ => {
+            log::new(user_id, "update_note", "not_found", &db_pool).await;
+            Err(StatusCode::NOT_FOUND.into())
+        }
     }
 }
 
@@ -318,9 +328,14 @@ async fn delete_note(
         }
     };
 
-    log::new(user_id, "delete_note", &db_pool).await;
     match res.rows_affected() {
-        1 => Ok(StatusCode::OK),
-        _ => Err(StatusCode::NOT_FOUND.into()),
+        1 => {
+            log::new(user_id, "delete_note", "ok", &db_pool).await;
+            Ok(StatusCode::OK)
+        }
+        _ => {
+            log::new(user_id, "delete_note", "not_found", &db_pool).await;
+            Err(StatusCode::NOT_FOUND.into())
+        }
     }
 }
