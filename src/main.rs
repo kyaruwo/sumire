@@ -12,7 +12,7 @@ async fn main() {
 
     let address: TcpListener = TcpListener::bind(&config.address)
         .await
-        .expect("\"ADDRESS\" is invalid, either IPv4 or IPv6");
+        .expect("\"ADDRESS\" is invalid or inuse");
 
     let db_pool: Pool<MySql> = match MySqlPoolOptions::new()
         .max_connections(4)
@@ -35,5 +35,5 @@ async fn main() {
 
     serve(address, app.into_make_service())
         .await
-        .expect("sumire died");
+        .expect("\nsumire died");
 }
