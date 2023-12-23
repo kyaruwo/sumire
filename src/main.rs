@@ -1,6 +1,7 @@
 use axum::{serve, Extension, Router};
 use sqlx::{mysql::MySqlPoolOptions, MySql, Pool};
 use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
 
 mod api;
 mod config;
@@ -25,9 +26,12 @@ async fn main() {
     let app: Router = Router::new()
         .nest("/api", api::routes())
         .with_state(db_pool)
-        .layer(Extension(config.aes_key));
+        .layer(Extension(config.aes_key))
+        .nest_service("/app", ServeDir::new("app"));
 
-    println!("\nsumire is alive @ http://{}/api\n", config.address);
+    println!("\nsumire is alive\n");
+    println!(" backend @ http://{}/api", config.address);
+    println!("frontend @ http://{}/app", config.address);
 
     serve(address, app.into_make_service())
         .await
