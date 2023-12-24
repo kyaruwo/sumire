@@ -7,7 +7,6 @@ authors = ["kyaruwo"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
 # core
 tokio = { version = "1.35.1", features = ["full"] }
 tower-http = { version = "0.5.0", features = ["fs"] }
@@ -21,6 +20,8 @@ sqlx = { version = "0.7.3", features = [
 
 # json
 serde = { version = "1.0.193", features = ["derive"] }
+
+# data
 validator = { version = "0.16.1", features = ["derive"] }
 
 # regex
@@ -30,6 +31,8 @@ regex = "1.10.2"
 # password
 argon2 = "0.5.2"
 
-# util
-dotenvy = "0.15.7"
+# token
 rand = "0.8.5"
+
+# environment variables
+dotenvy = "0.15.7"
