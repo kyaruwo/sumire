@@ -5,7 +5,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>sumire</title>
 
-        <link rel="stylesheet" href="css/sumire.css" />
+        <link rel="stylesheet" href="../app/css/sumire.css" />
     </head>
-    <body class="bg-black"></body>
+    <body class="bg-black text-white">
+        <nav class="flex h-20 items-end justify-around">
+            <h class="text-4xl font-black">sumire</h>
+            <div class="flex gap-12 text-2xl">
+                <a href="../app/html/about.html">About</a>
+            </div>
+        </nav>
+
+        <main
+            class="mt-40 flex flex-col items-center justify-center text-center"
+        >
+            <h class="text-8xl max-lg:text-7xl max-md:text-6xl max-sm:text-5xl"
+                >Write down Notes</h
+            >
+
+            <a
+                class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
+                href="../app/html/auth.html#register"
+            >
+                Register
+            </a>
+            <p class="max-md:text-sm">
+                Already have an account?
+                <a class="text-blue-400" href="../app/html/auth.html">Login</a>
+            </p>
+        </main>
+    </body>
 </html>
