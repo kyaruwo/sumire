@@ -64,10 +64,68 @@ function show_login() {
     `;
 }
 
-function register() {
-    console.log("register");
+async function register() {
+    const data = {
+        name: document.getElementById("name").value,
+        password: document.getElementById("password").value,
+    };
+
+    const response = await fetch("http://127.0.0.1:42069/api/users/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    switch (response.status) {
+        case 201:
+            console.log("created");
+            break;
+        case 400:
+            console.log("bad request");
+            break;
+        case 409:
+            console.log("conflict");
+            break;
+        case 500:
+            console.log("error");
+            break;
+        default:
+            console.log("?");
+            break;
+    }
 }
 
-function login() {
-    console.log("login");
+async function login() {
+    const data = {
+        name: document.getElementById("name").value,
+        password: document.getElementById("password").value,
+    };
+
+    const response = await fetch("http://127.0.0.1:42069/api/users/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    switch (response.status) {
+        case 200:
+            console.log("ok");
+            break;
+        case 400:
+            console.log("bad request");
+            break;
+        case 404:
+            console.log("not found");
+            break;
+        case 500:
+            console.log("error");
+            break;
+        default:
+            console.log("?");
+            break;
+    }
 }
