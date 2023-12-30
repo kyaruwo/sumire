@@ -80,19 +80,20 @@ async function register() {
 
     switch (response.status) {
         case 201:
-            console.log("created");
+            toast("created");
+            show_login();
             break;
         case 400:
-            console.log("bad request");
+            toast("bad request");
             break;
         case 409:
-            console.log("conflict");
+            toast("conflict");
             break;
         case 500:
-            console.log("error");
+            toast("error");
             break;
         default:
-            console.log("?");
+            toast("?");
             break;
     }
 }
@@ -113,19 +114,20 @@ async function login() {
 
     switch (response.status) {
         case 200:
-            console.log("ok");
+            toast("ok");
+            document.location.href = "main.html";
             break;
         case 400:
-            console.log("bad request");
+            toast("bad request");
             break;
         case 404:
-            console.log("not found");
+            toast("not found");
             break;
         case 500:
-            console.log("error");
+            toast("error");
             break;
         default:
-            console.log("?");
+            toast("?");
             break;
     }
 }
