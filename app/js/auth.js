@@ -114,7 +114,9 @@ async function login() {
 
     switch (response.status) {
         case 200:
-            toast("ok");
+            const response_json = await response.json();
+            Cookies.set("token", await response_json.token);
+            await toast("ok");
             document.location.href = "main.html";
             break;
         case 400:
