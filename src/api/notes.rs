@@ -5,10 +5,7 @@ use axum::{
     routing::{delete, get, post, put},
     Extension, Json, Router,
 };
-use axum_extra::{
-    headers::{authorization::Bearer, Authorization},
-    TypedHeader,
-};
+use axum_extra::extract::CookieJar;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::{Validate, ValidationError};
@@ -30,7 +27,7 @@ struct UserID {
     id: u64,
 }
 
-async fn get_user_id(auth_token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Result<u64> {
+async fn get_user_id(token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Result<u64> {
     let res: Option<UserID> = match sqlx::query_as::<_, UserID>(
         "
         SELECT
@@ -41,7 +38,7 @@ async fn get_user_id(auth_token: &str, aes_key: &String, db_pool: &Pool<MySql>) 
             token = AES_ENCRYPT(?, ?);
         ",
     )
-    .bind(auth_token)
+    .bind(token)
     .bind(aes_key)
     .fetch_optional(db_pool)
     .await
@@ -98,10 +95,15 @@ struct Note {
 async fn write_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+    cookies: CookieJar,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
-    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+    let token: &str = match cookies.get("token") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: u64 = match get_user_id(token, &aes_key, &db_pool).await {
         Err(e) => return Err(e),
         Ok(user_id) => user_id,
     };
@@ -148,9 +150,14 @@ async fn read_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
-    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+    cookies: CookieJar,
 ) -> Result<Json<Note>> {
-    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+    let token: &str = match cookies.get("token") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: u64 = match get_user_id(token, &aes_key, &db_pool).await {
         Err(e) => return Err(e),
         Ok(user_id) => user_id,
     };
@@ -197,9 +204,14 @@ async fn read_note(
 async fn read_notes(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+    cookies: CookieJar,
 ) -> Result<Json<Vec<Note>>> {
-    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+    let token: &str = match cookies.get("token") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: u64 = match get_user_id(token, &aes_key, &db_pool).await {
         Err(e) => return Err(e),
         Ok(user_id) => user_id,
     };
@@ -237,10 +249,15 @@ async fn update_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
-    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+    cookies: CookieJar,
     Json(payload): Json<WriteNote>,
 ) -> Result<(StatusCode, Json<Note>)> {
-    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+    let token: &str = match cookies.get("token") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: u64 = match get_user_id(token, &aes_key, &db_pool).await {
         Err(e) => return Err(e),
         Ok(user_id) => user_id,
     };
@@ -300,9 +317,14 @@ async fn delete_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Path(id): Path<u64>,
-    TypedHeader(auth): TypedHeader<Authorization<Bearer>>,
+    cookies: CookieJar,
 ) -> Result<StatusCode> {
-    let user_id: u64 = match get_user_id(auth.token(), &aes_key, &db_pool).await {
+    let token: &str = match cookies.get("token") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: u64 = match get_user_id(token, &aes_key, &db_pool).await {
         Err(e) => return Err(e),
         Ok(user_id) => user_id,
     };

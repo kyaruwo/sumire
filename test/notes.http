@@ -4,7 +4,7 @@
 
 ### create_note
 POST {{url}}/notes
-Authorization: Bearer {{token}}
+Cookie: token={{token}};
 content-type: application/json
 
 {
@@ -14,15 +14,15 @@ content-type: application/json
 
 ### read_note
 GET {{url}}/notes/1
-Authorization: Bearer {{token}}
+Cookie: token={{token}};
 
 ### read_notes
 GET {{url}}/notes
-Authorization: Bearer {{token}}
+Cookie: token={{token}};
 
 ### update_note
 PUT {{url}}/notes/1
-Authorization: Bearer {{token}}
+Cookie: token={{token}};
 content-type: application/json
 
 {
@@ -32,4 +32,4 @@ content-type: application/json
 
 ### delete_note
 DELETE  {{url}}/notes/1
-Authorization: Bearer {{token}}
+Cookie: token={{token}};
