@@ -56,7 +56,7 @@ async fn register(
     Json(payload): Json<User>,
 ) -> Result<StatusCode> {
     match payload.validate() {
-        Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
         _ => (),
     };
 
@@ -128,7 +128,7 @@ async fn login(
     Json(payload): Json<User>,
 ) -> Result<(StatusCode, Json<Token>)> {
     match payload.validate() {
-        Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
         _ => (),
     };
 

@@ -109,7 +109,7 @@ async fn write_note(
     };
 
     match payload.validate() {
-        Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
         _ => (),
     };
 
@@ -263,7 +263,7 @@ async fn update_note(
     };
 
     match payload.validate() {
-        Err(e) => return Err((StatusCode::BAD_REQUEST, Json(e)).into()),
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
         _ => (),
     };
 

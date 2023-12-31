@@ -89,6 +89,9 @@ async function register() {
         case 409:
             toast("conflict");
             break;
+        case 422:
+            toast("unprocessable entity");
+            break;
         case 500:
             toast("error");
             break;
@@ -124,6 +127,9 @@ async function login() {
             break;
         case 404:
             toast("not found");
+            break;
+        case 422:
+            toast("unprocessable entity");
             break;
         case 500:
             toast("error");
