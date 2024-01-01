@@ -148,7 +148,7 @@ async function login() {
                 const response_json = await response.json();
                 Cookies.set("token", await response_json.token);
                 await toast("Success", "Redirecting");
-                document.location.href = "main.html";
+                location.href = "main.html";
                 break;
             case 404:
                 toast("Not Found", "Account doesn't exists");
