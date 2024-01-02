@@ -12,14 +12,18 @@ function show_write_note() {
         >
             <input
                 id="note_title"
-                minlength="1"
+                type="text"
                 maxlength="42"
+                placeholder="Title"
+                required
                 class="border-b-2 bg-black p-4 text-4xl font-semibold"
             />
             <textarea
                 id="note_body"
-                minlength="1"
+                type="text"
                 maxlength="420"
+                placeholder="Body"
+                required
                 class="min-h-80 mt-4 h-fit overflow-hidden bg-black p-4 text-2xl"
             ></textarea>
             <div class="mt-4 flex justify-evenly">
@@ -39,10 +43,20 @@ function show_write_note() {
 }
 
 async function write_note() {
+    const note_title = document.getElementById("note_title");
+    const note_body = document.getElementById("note_body");
+
     const data = {
-        title: document.getElementById("note_title").value,
-        body: document.getElementById("note_body").value,
+        title: note_title.value.trim(),
+        body: note_body.value.trim(),
     };
+
+    if (!data.title || !data.body) {
+        note_title.value = data.title;
+        note_body.value = data.body;
+        toast("Empty", "Empty title or body");
+        return;
+    }
 
     try {
         const response = await fetch(`http://127.0.0.1:42069/api/notes`, {
@@ -150,15 +164,17 @@ async function show_note(id) {
         >
             <input
                 id="note_title"
-                minlength="1"
+                type="text"
                 maxlength="42"
+                required
                 class="border-b-2 bg-black p-4 text-4xl font-semibold"
                 value="${note.title}"
             />
             <textarea
                 id="note_body"
-                minlength="1"
+                type="text"
                 maxlength="420"
+                required
                 class="min-h-80 mt-4 h-fit overflow-hidden bg-black p-4 text-2xl"
             >${note.body}</textarea>
             <div class="mt-4 flex justify-evenly">
@@ -188,9 +204,16 @@ async function update_note(id) {
     const note_body = document.getElementById("note_body");
 
     const data = {
-        title: note_title.value,
-        body: note_body.value,
+        title: note_title.value.trim(),
+        body: note_body.value.trim(),
     };
+
+    if (!data.title || !data.body) {
+        note_title.value = data.title;
+        note_body.value = data.body;
+        toast("Empty", "Empty title or body");
+        return;
+    }
 
     try {
         const response = await fetch(`http://127.0.0.1:42069/api/notes/${id}`, {
