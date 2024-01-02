@@ -38,8 +38,37 @@ function show_write_note() {
     `;
 }
 
-function write_note() {
-    console.log("write_note");
+async function write_note() {
+    const data = {
+        title: document.getElementById("note_title").value,
+        body: document.getElementById("note_body").value,
+    };
+
+    try {
+        const response = await fetch(`http://127.0.0.1:42069/api/notes`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+
+        switch (response.status) {
+            case 201:
+                toast("Success", "Note written");
+                const response_json = await response.json();
+                show_note(response_json.id);
+                break;
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
 }
 
 async function show_notes() {
