@@ -154,8 +154,41 @@ async function show_note(id) {
     `;
 }
 
-function update_note(id) {
-    console.log("update_note");
+async function update_note(id) {
+    const note_title = document.getElementById("note_title");
+    const note_body = document.getElementById("note_body");
+
+    const data = {
+        title: note_title.value,
+        body: note_body.value,
+    };
+
+    try {
+        const response = await fetch(`http://127.0.0.1:42069/api/notes/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+
+        switch (response.status) {
+            case 200:
+                const response_json = await response.json();
+                note_title.value = response_json.title;
+                note_body.value = response_json.body;
+                toast("Success", "Note updated");
+                break;
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
 }
 
 function delete_note(id) {
