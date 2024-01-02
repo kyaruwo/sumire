@@ -48,6 +48,42 @@ function show_register() {
     `;
 }
 
+async function register() {
+    const data = {
+        name: document.getElementById("name").value.toLowerCase(),
+        password: document.getElementById("password").value,
+    };
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:42069/api/users/register",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }
+        );
+
+        switch (response.status) {
+            case 201:
+                toast("Success", "Account created");
+                show_login();
+                break;
+            case 409:
+                toast("Conflict", "Account already exists");
+                break;
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+}
+
 function show_login() {
     location.hash = "login";
     document.getElementById("main").innerHTML = `
@@ -90,42 +126,6 @@ function show_login() {
         Register
     </button>
     `;
-}
-
-async function register() {
-    const data = {
-        name: document.getElementById("name").value.toLowerCase(),
-        password: document.getElementById("password").value,
-    };
-
-    try {
-        const response = await fetch(
-            "http://127.0.0.1:42069/api/users/register",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            }
-        );
-
-        switch (response.status) {
-            case 201:
-                toast("Success", "Account created");
-                show_login();
-                break;
-            case 409:
-                toast("Conflict", "Account already exists");
-                break;
-            default:
-                toast("Error", "An error occurred");
-                break;
-        }
-    } catch (e) {
-        console.log(e);
-        toast("Error", "An error occurred");
-    }
 }
 
 async function login() {
