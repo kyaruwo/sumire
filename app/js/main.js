@@ -177,7 +177,7 @@ async function show_note(id) {
                 required
                 class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
             >${note.body}</textarea>
-            <div class="mt-4 flex justify-evenly">
+            <div class="mt-4 flex justify-evenly max-sm:text-xs lg:text-xl">
                 <button class="rounded-2xl bg-blue-600 p-2 px-4">
                     Update
                 </button>
