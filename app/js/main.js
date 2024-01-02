@@ -26,13 +26,13 @@ function show_write_note() {
                 required
                 class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
             ></textarea>
-            <div class="mt-4 flex justify-evenly">
+            <div class="mt-4 flex justify-evenly max-sm:text-xs lg:text-xl">
                 <button class="rounded-2xl bg-green-600 p-2 px-4">
                     Write
                 </button>
                 <button
                     onclick="show_notes();return false"
-                    class="rounded-2xl bg-neutral-600 p-2 px-4"
+                    class="rounded-2xl bg-orange-600 p-2 px-4"
                 >
                     Cancel
                 </button>
