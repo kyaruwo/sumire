@@ -1,9 +1,3 @@
-if (location.hash == "#register") {
-    show_register();
-} else {
-    show_login();
-}
-
 function show_register() {
     location.hash = "register";
     document.getElementById("main").innerHTML = `
@@ -162,3 +156,35 @@ async function login() {
         toast("Error", "An error occurred");
     }
 }
+
+// onload
+(async function () {
+    const token = Cookies.get("token");
+    if (token != undefined) {
+        try {
+            const response = await fetch("http://127.0.0.1:42069/api/token", {
+                method: "PUT",
+            });
+
+            switch (response.status) {
+                case 200:
+                    const response_json = await response.json();
+                    Cookies.set("token", await response_json.token);
+                    location.href = "main.html";
+                    break;
+                default:
+                    Cookies.remove("token");
+                    break;
+            }
+        } catch (e) {
+            console.log(e);
+            toast("Error", "An error occurred");
+        }
+    }
+
+    if (location.hash == "#register") {
+        show_register();
+    } else {
+        show_login();
+    }
+})();

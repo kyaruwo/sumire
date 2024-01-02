@@ -141,6 +141,32 @@ function delete_note() {
 
 // onload
 (async function () {
-    await new Promise((sleep) => setTimeout(sleep, 420));
+    const token = Cookies.get("token");
+
+    if (token == undefined) {
+        location.href = "auth.html";
+        return;
+    }
+
+    try {
+        const response = await fetch("http://127.0.0.1:42069/api/token", {
+            method: "PUT",
+        });
+
+        switch (response.status) {
+            case 200:
+                const response_json = await response.json();
+                Cookies.set("token", await response_json.token);
+                break;
+            default:
+                Cookies.remove("token");
+                location.href = "auth.html";
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+
     show_notes();
 })();
