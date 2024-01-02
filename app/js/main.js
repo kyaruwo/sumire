@@ -144,9 +144,9 @@ async function show_note(id) {
                 </button>
                 <button
                     onclick="show_notes();return false"
-                    class="rounded-2xl bg-neutral-600 p-2 px-4"
+                    class="rounded-2xl bg-orange-600 p-2 px-4"
                 >
-                    Cancel
+                    Return
                 </button>
             </div>
         </form>
@@ -191,8 +191,27 @@ async function update_note(id) {
     }
 }
 
-function delete_note(id) {
-    console.log("delete_note");
+async function delete_note(id) {
+    try {
+        const response = await fetch(`http://127.0.0.1:42069/api/notes/${id}`, {
+            method: "DELETE",
+        });
+
+        switch (response.status) {
+            case 200:
+                toast("Success", "Note deleted");
+                show_notes();
+                break;
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
 }
 
 // onload
