@@ -5,7 +5,7 @@ function logout() {
 
 function show_write_note() {
     document.getElementById("main").innerHTML = `
-    <div class="md:mx-20 lg:mx-40">
+    <div class="max-md:mx-2 md:mx-20 lg:mx-40">
         <form
             onsubmit="write_note();return false"
             class="flex flex-col rounded border-4 border-solid border-white p-4"
@@ -16,7 +16,7 @@ function show_write_note() {
                 maxlength="42"
                 placeholder="Title"
                 required
-                class="border-b-2 bg-black p-4 text-4xl font-semibold"
+                class="border-b-2 bg-black p-4 text-4xl font-semibold max-md:text-2xl"
             />
             <textarea
                 id="note_body"
@@ -24,7 +24,7 @@ function show_write_note() {
                 maxlength="420"
                 placeholder="Body"
                 required
-                class="min-h-80 mt-4 h-fit overflow-hidden bg-black p-4 text-2xl"
+                class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
             ></textarea>
             <div class="mt-4 flex justify-evenly">
                 <button class="rounded-2xl bg-green-600 p-2 px-4">
@@ -87,10 +87,10 @@ async function write_note() {
 
 async function show_notes() {
     document.getElementById("main").innerHTML = `
-    <div class="md:mx-20 lg:mx-40">
+    <div class="sm:mx-20 lg:mx-32">
         <div
             id="notes"
-            class="grid justify-items-center gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            class="grid justify-items-center gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         ></div>
     </div>
     `;
@@ -157,7 +157,7 @@ async function read_note(id) {
 async function show_note(id) {
     const note = await read_note(id);
     document.getElementById("main").innerHTML = `
-    <div class="md:mx-20 lg:mx-40">
+    <div class="max-md:mx-2 md:mx-20 lg:mx-40">
         <form
             onsubmit="update_note(${note.id});return false"
             class="flex flex-col rounded border-4 border-solid border-white p-4"
@@ -167,7 +167,7 @@ async function show_note(id) {
                 type="text"
                 maxlength="42"
                 required
-                class="border-b-2 bg-black p-4 text-4xl font-semibold"
+                class="border-b-2 bg-black p-4 text-4xl font-semibold max-md:text-2xl"
                 value="${note.title}"
             />
             <textarea
@@ -175,7 +175,7 @@ async function show_note(id) {
                 type="text"
                 maxlength="420"
                 required
-                class="min-h-80 mt-4 h-fit overflow-hidden bg-black p-4 text-2xl"
+                class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
             >${note.body}</textarea>
             <div class="mt-4 flex justify-evenly">
                 <button class="rounded-2xl bg-blue-600 p-2 px-4">
