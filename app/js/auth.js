@@ -151,7 +151,7 @@ async function login() {
                 location.href = "main.html";
                 break;
             case 404:
-                toast("Not Found", "Account doesn't exists");
+                toast("Not Found", "Incorrect name or password");
                 break;
             default:
                 toast("Error", "An error occurred");
