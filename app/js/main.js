@@ -166,6 +166,7 @@ async function show_note(id) {
                 id="note_title"
                 type="text"
                 maxlength="42"
+                placeholder="Title"
                 required
                 class="border-b-2 bg-black p-4 text-4xl font-semibold max-md:text-2xl"
                 value="${note.title}"
@@ -174,6 +175,7 @@ async function show_note(id) {
                 id="note_body"
                 type="text"
                 maxlength="420"
+                placeholder="Body"
                 required
                 class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
             >${note.body}</textarea>
