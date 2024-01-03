@@ -6,34 +6,23 @@
         <title>sumire</title>
 
         <link rel="stylesheet" href="/app/assets/sumire.css" />
+
+        <script src="/app/js/js.cookie.min.js" defer></script>
+        <script src="/app/js/index.js" defer></script>
     </head>
     <body class="select-none bg-black text-white">
         <nav class="flex h-20 items-end justify-around">
-            <a href="/app" class="text-4xl font-black">sumire</a>
+            <button onclick="show_sumire()" class="text-4xl font-black">
+                sumire
+            </button>
             <div class="flex gap-12 text-2xl">
-                <a href="/app/html/about.html">About</a>
+                <button onclick="show_about()">About</button>
             </div>
         </nav>
 
         <main
+            id="main"
             class="mt-40 flex flex-col items-center justify-center text-center"
-        >
-            <h class="text-8xl max-lg:text-7xl max-md:text-6xl max-sm:text-5xl"
-                >Write down Notes</h
-            >
-
-            <a
-                class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
-                href="/app/html/auth.html#register"
-            >
-                Register
-            </a>
-            <p class="max-md:text-sm">
-                Already have an account?
-                <a class="text-blue-400" href="/app/html/auth.html#login"
-                    >Login</a
-                >
-            </p>
-        </main>
+        ></main>
     </body>
 </html>
