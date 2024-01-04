@@ -98,7 +98,6 @@ async function show_note(id) {
                 placeholder="Title"
                 required
                 class="p-4 text-4xl font-semibold bg-black border-b-2 max-md:text-2xl"
-                value="${note.title}"
             />
             <textarea
                 id="note_body"
@@ -107,7 +106,7 @@ async function show_note(id) {
                 placeholder="Body"
                 required
                 class="p-4 mt-4 text-2xl bg-black min-h-80 h-fit max-md:text-base"
-            >${note.body}</textarea>
+            ></textarea>
             <div class="flex mt-4 justify-evenly max-sm:text-xs lg:text-xl">
                 <button class="p-2 px-4 bg-blue-600 rounded-2xl">Update</button>
                 <button
@@ -126,6 +125,8 @@ async function show_note(id) {
         </form>
     </div>
     `;
+    document.getElementById("note_title").value = note.title;
+    document.getElementById("note_body").innerText = note.body;
 }
 
 async function read_note(id) {
@@ -168,10 +169,12 @@ async function show_notes() {
             onclick="show_note(${note.id})"
             class="p-4 border-4 border-white border-solid rounded cursor-pointer h-60 w-60"
         >
-            <h class="text-2xl font-semibold border-b-2 line-clamp-1">${note.title}</h>
-            <p class="mt-4 text-base line-clamp-6">${note.body}</p>
+            <h id="note_title_${note.id}" class="text-2xl font-semibold border-b-2 line-clamp-1"></h>
+            <p id="note_body_${note.id}" class="mt-4 text-base line-clamp-6"></p>
         </div>
         `;
+        document.getElementById(`note_title_${note.id}`).innerText = note.title;
+        document.getElementById(`note_body_${note.id}`).innerText = note.body;
     });
 }
 
