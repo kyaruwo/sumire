@@ -10,8 +10,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::{Validate, ValidationError};
 
-use super::log;
-
 pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/notes", post(write_note))
@@ -20,40 +18,6 @@ pub fn routes() -> Router<Pool<MySql>> {
         .route("/notes/:id", put(update_note))
         .route("/notes/:id", delete(delete_note))
         .layer(DefaultBodyLimit::max(690))
-}
-
-#[derive(FromRow)]
-struct UserID {
-    id: u64,
-}
-
-async fn get_user_id(token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Result<u64> {
-    let res: Option<UserID> = match sqlx::query_as::<_, UserID>(
-        "
-        SELECT
-            id
-        FROM
-            Users
-        WHERE
-            token = AES_ENCRYPT(?, ?);
-        ",
-    )
-    .bind(token)
-    .bind(aes_key)
-    .fetch_optional(db_pool)
-    .await
-    {
-        Ok(res) => res,
-        Err(e) => {
-            eprintln!("{e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
-        }
-    };
-
-    match res {
-        Some(user) => Ok(user.id),
-        None => Err(StatusCode::UNAUTHORIZED.into()),
-    }
 }
 
 fn empty_string(field: &String) -> Result<(), ValidationError> {
@@ -122,7 +86,7 @@ async fn write_note(
     note.id = match sqlx::query(
         "
         INSERT INTO
-            Notes (`user_id`, title, body)
+            Notes (`user_id`, `title`, `body`)
         VALUES
             (?, AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));
         ",
@@ -142,14 +106,14 @@ async fn write_note(
         }
     };
 
-    log::new(user_id, "write_note", "ok", &db_pool).await;
+    log(user_id, "write_note", note.id, "created", &db_pool).await;
     Ok((StatusCode::CREATED, Json(note)))
 }
 
 async fn read_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Path(id): Path<u64>,
+    Path(note_id): Path<u64>,
     cookies: CookieJar,
 ) -> Result<Json<Note>> {
     let token: &str = match cookies.get("token") {
@@ -166,8 +130,8 @@ async fn read_note(
         "
         SELECT
             id,
-            CONVERT(AES_DECRYPT(title, ?) USING utf8) as title,
-            CONVERT(AES_DECRYPT(body, ?) USING utf8) as body
+            CONVERT(AES_DECRYPT(title, ?) USING utf8) as `title`,
+            CONVERT(AES_DECRYPT(body, ?) USING utf8) as `body`
         FROM
             Notes
         WHERE
@@ -178,7 +142,7 @@ async fn read_note(
     .bind(&aes_key)
     .bind(&aes_key)
     .bind(user_id)
-    .bind(id)
+    .bind(note_id)
     .fetch_optional(&db_pool)
     .await
     {
@@ -191,11 +155,11 @@ async fn read_note(
 
     match res {
         Some(note) => {
-            log::new(user_id, "read_note", "ok", &db_pool).await;
+            log(user_id, "read_note", note_id, "ok", &db_pool).await;
             Ok(Json(note))
         }
         None => {
-            log::new(user_id, "read_note", "not_found", &db_pool).await;
+            log(user_id, "read_note", note_id, "not_found", &db_pool).await;
             Err(StatusCode::NOT_FOUND.into())
         }
     }
@@ -220,8 +184,8 @@ async fn read_notes(
         "
         SELECT
             id,
-            CONVERT(AES_DECRYPT(title, ?) USING utf8) as title,
-            CONVERT(AES_DECRYPT(body, ?) USING utf8) as body
+            CONVERT(AES_DECRYPT(title, ?) USING utf8) as `title`,
+            CONVERT(AES_DECRYPT(body, ?) USING utf8) as `body`
         FROM
             Notes
         WHERE
@@ -241,17 +205,17 @@ async fn read_notes(
         }
     };
 
-    log::new(user_id, "read_notes", "ok", &db_pool).await;
+    log(user_id, "read_notes", 0, "ok", &db_pool).await;
     Ok(Json(notes))
 }
 
 async fn update_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Path(id): Path<u64>,
+    Path(note_id): Path<u64>,
     cookies: CookieJar,
     Json(payload): Json<WriteNote>,
-) -> Result<(StatusCode, Json<Note>)> {
+) -> Result<Json<Note>> {
     let token: &str = match cookies.get("token") {
         Some(cookie) => cookie.value(),
         None => return Err(StatusCode::UNAUTHORIZED.into()),
@@ -268,7 +232,7 @@ async fn update_note(
     };
 
     let note: Note = Note {
-        id,
+        id: note_id,
         title: String::from(payload.title.trim()),
         body: String::from(payload.body.trim()),
     };
@@ -278,8 +242,8 @@ async fn update_note(
         UPDATE
             Notes
         SET
-            title = AES_ENCRYPT(?, ?),
-            body = AES_ENCRYPT(?, ?)
+            `title` = AES_ENCRYPT(?, ?),
+            `body` = AES_ENCRYPT(?, ?)
         WHERE
             `user_id` = ?
             AND id = ?;
@@ -290,7 +254,7 @@ async fn update_note(
     .bind(&note.body)
     .bind(&aes_key)
     .bind(user_id)
-    .bind(&note.id)
+    .bind(note.id)
     .execute(&db_pool)
     .await
     {
@@ -303,11 +267,11 @@ async fn update_note(
 
     match res.rows_affected() {
         1 => {
-            log::new(user_id, "update_note", "ok", &db_pool).await;
-            Ok((StatusCode::OK, Json(note)))
+            log(user_id, "update_note", note_id, "ok", &db_pool).await;
+            Ok(Json(note))
         }
         _ => {
-            log::new(user_id, "update_note", "not_found", &db_pool).await;
+            log(user_id, "update_note", note_id, "not_found", &db_pool).await;
             Err(StatusCode::NOT_FOUND.into())
         }
     }
@@ -316,7 +280,7 @@ async fn update_note(
 async fn delete_note(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Path(id): Path<u64>,
+    Path(note_id): Path<u64>,
     cookies: CookieJar,
 ) -> Result<StatusCode> {
     let token: &str = match cookies.get("token") {
@@ -339,7 +303,7 @@ async fn delete_note(
         ",
     )
     .bind(user_id)
-    .bind(id)
+    .bind(note_id)
     .execute(&db_pool)
     .await
     {
@@ -352,12 +316,67 @@ async fn delete_note(
 
     match res.rows_affected() {
         1 => {
-            log::new(user_id, "delete_note", "ok", &db_pool).await;
+            log(user_id, "delete_note", note_id, "ok", &db_pool).await;
             Ok(StatusCode::OK)
         }
         _ => {
-            log::new(user_id, "delete_note", "not_found", &db_pool).await;
+            log(user_id, "delete_note", note_id, "not_found", &db_pool).await;
             Err(StatusCode::NOT_FOUND.into())
         }
+    }
+}
+
+async fn log(user_id: u64, request: &str, note_id: u64, response: &str, db_pool: &Pool<MySql>) {
+    match sqlx::query(
+        "
+        INSERT INTO
+            NotesLogs (`user_id`, `request`, `note_id`, `response`)
+        VALUES
+            (?, ?, ?, ?);
+        ",
+    )
+    .bind(user_id)
+    .bind(request)
+    .bind(note_id)
+    .bind(response)
+    .execute(db_pool)
+    .await
+    {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
+}
+
+#[derive(FromRow)]
+struct UserID {
+    id: u64,
+}
+
+async fn get_user_id(token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Result<u64> {
+    let res: Option<UserID> = match sqlx::query_as::<_, UserID>(
+        "
+        SELECT
+            id
+        FROM
+            Users
+        WHERE
+            `token` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(token)
+    .bind(aes_key)
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("{e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res {
+        Some(user) => Ok(user.id),
+        None => Err(StatusCode::UNAUTHORIZED.into()),
     }
 }

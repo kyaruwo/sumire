@@ -16,8 +16,6 @@ use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::Validate;
 use {lazy_static::lazy_static, regex::Regex};
 
-use super::log;
-
 pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/users/register", post(register))
@@ -114,7 +112,7 @@ async fn register(
     .await
     {
         Ok(res) => {
-            log::new(res.last_insert_id(), "register", "created", &db_pool).await;
+            log(res.last_insert_id(), "register", "created", &db_pool).await;
             Ok(StatusCode::CREATED)
         }
         Err(e) => {
@@ -128,7 +126,7 @@ async fn login(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     Json(payload): Json<User>,
-) -> Result<(StatusCode, Json<Token>)> {
+) -> Result<Json<Token>> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
         _ => (),
@@ -170,7 +168,10 @@ async fn login(
     };
 
     match Argon2::default().verify_password(payload.password.as_bytes(), &password_hash) {
-        Err(_) => return Err(StatusCode::NOT_FOUND.into()),
+        Err(_) => {
+            log(user.id, "login", "failed", &db_pool).await;
+            return Err(StatusCode::NOT_FOUND.into());
+        }
         Ok(_) => (),
     }
 
@@ -181,7 +182,7 @@ async fn login(
         UPDATE
             Users
         SET
-            token = AES_ENCRYPT(?, ?)
+            `token` = AES_ENCRYPT(?, ?)
         WHERE
             `name` = AES_ENCRYPT(?, ?);
         ",
@@ -202,8 +203,8 @@ async fn login(
 
     match res.rows_affected() {
         1 => {
-            log::new(user.id, "login", "ok", &db_pool).await;
-            Ok((StatusCode::OK, Json(Token { token })))
+            log(user.id, "login", "success", &db_pool).await;
+            Ok(Json(Token { token }))
         }
         _ => Err(StatusCode::NOT_FOUND.into()),
     }
@@ -213,7 +214,7 @@ async fn token(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
     cookies: CookieJar,
-) -> Result<(StatusCode, Json<Token>)> {
+) -> Result<Json<Token>> {
     let old_token: &str = match cookies.get("token") {
         Some(cookie) => cookie.value(),
         None => return Err(StatusCode::UNAUTHORIZED.into()),
@@ -226,9 +227,9 @@ async fn token(
         UPDATE
             Users
         SET
-            token = AES_ENCRYPT(?, ?)
+            `token` = AES_ENCRYPT(?, ?)
         WHERE
-            token = AES_ENCRYPT(?, ?);
+            `token` = AES_ENCRYPT(?, ?);
         ",
     )
     .bind(&new_token)
@@ -240,7 +241,7 @@ async fn token(
     {
         Ok(res) => match res.rows_affected() {
             1 => {
-                return Ok((StatusCode::OK, Json(Token { token: new_token })));
+                return Ok(Json(Token { token: new_token }));
             }
             _ => return Err(StatusCode::UNAUTHORIZED.into()),
         },
@@ -248,5 +249,25 @@ async fn token(
             eprintln!("{e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
+    }
+}
+
+async fn log(user_id: u64, request: &str, response: &str, db_pool: &Pool<MySql>) {
+    match sqlx::query(
+        "
+        INSERT INTO
+            UsersLogs (`user_id`, `request`, `response`)
+        VALUES
+            (?, ?, ?);
+        ",
+    )
+    .bind(user_id)
+    .bind(request)
+    .bind(response)
+    .execute(db_pool)
+    .await
+    {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
     }
 }
