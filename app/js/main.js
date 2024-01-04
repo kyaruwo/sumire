@@ -83,6 +83,73 @@ async function write_note() {
     }
 }
 
+async function show_note(id) {
+    const note = await read_note(id);
+    document.getElementById("main").innerHTML = `
+    <div class="max-md:mx-2 md:mx-20 lg:mx-40">
+        <form
+            onsubmit="update_note(${note.id});return false"
+            class="flex flex-col p-4 border-4 border-white border-solid rounded"
+        >
+            <input
+                id="note_title"
+                type="text"
+                maxlength="42"
+                placeholder="Title"
+                required
+                class="p-4 text-4xl font-semibold bg-black border-b-2 max-md:text-2xl"
+                value="${note.title}"
+            />
+            <textarea
+                id="note_body"
+                type="text"
+                maxlength="420"
+                placeholder="Body"
+                required
+                class="p-4 mt-4 text-2xl bg-black min-h-80 h-fit max-md:text-base"
+            >${note.body}</textarea>
+            <div class="flex mt-4 justify-evenly max-sm:text-xs lg:text-xl">
+                <button class="p-2 px-4 bg-blue-600 rounded-2xl">Update</button>
+                <button
+                    onclick="delete_note(${note.id});return false"
+                    class="p-2 px-4 bg-red-600 rounded-2xl"
+                >
+                    Delete
+                </button>
+                <button
+                    onclick="show_notes();return false"
+                    class="p-2 px-4 bg-orange-600 rounded-2xl"
+                >
+                    Return
+                </button>
+            </div>
+        </form>
+    </div>
+    `;
+}
+
+async function read_note(id) {
+    try {
+        const response = await fetch(`http://127.0.0.1:42069/api/notes/${id}`, {
+            method: "GET",
+        });
+
+        switch (response.status) {
+            case 200:
+                return await response.json();
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+    show_notes();
+}
+
 async function show_notes() {
     document.getElementById("main").innerHTML = `
     <div class="sm:mx-20 lg:mx-32">
@@ -128,73 +195,6 @@ async function read_notes() {
         toast("Error", "An error occurred");
     }
     return [];
-}
-
-async function read_note(id) {
-    try {
-        const response = await fetch(`http://127.0.0.1:42069/api/notes/${id}`, {
-            method: "GET",
-        });
-
-        switch (response.status) {
-            case 200:
-                return await response.json();
-            case 401:
-                return logout();
-            default:
-                toast("Error", "An error occurred");
-                break;
-        }
-    } catch (e) {
-        console.log(e);
-        toast("Error", "An error occurred");
-    }
-    show_notes();
-}
-
-async function show_note(id) {
-    const note = await read_note(id);
-    document.getElementById("main").innerHTML = `
-    <div class="max-md:mx-2 md:mx-20 lg:mx-40">
-        <form
-            onsubmit="update_note(${note.id});return false"
-            class="flex flex-col p-4 border-4 border-white border-solid rounded"
-        >
-            <input
-                id="note_title"
-                type="text"
-                maxlength="42"
-                placeholder="Title"
-                required
-                class="p-4 text-4xl font-semibold bg-black border-b-2 max-md:text-2xl"
-                value="${note.title}"
-            />
-            <textarea
-                id="note_body"
-                type="text"
-                maxlength="420"
-                placeholder="Body"
-                required
-                class="p-4 mt-4 text-2xl bg-black min-h-80 h-fit max-md:text-base"
-            >${note.body}</textarea>
-            <div class="flex mt-4 justify-evenly max-sm:text-xs lg:text-xl">
-                <button class="p-2 px-4 bg-blue-600 rounded-2xl">Update</button>
-                <button
-                    onclick="delete_note(${note.id});return false"
-                    class="p-2 px-4 bg-red-600 rounded-2xl"
-                >
-                    Delete
-                </button>
-                <button
-                    onclick="show_notes();return false"
-                    class="p-2 px-4 bg-orange-600 rounded-2xl"
-                >
-                    Return
-                </button>
-            </div>
-        </form>
-    </div>
-    `;
 }
 
 async function update_note(id) {
