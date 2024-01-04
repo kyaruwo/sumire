@@ -162,9 +162,12 @@ async function login() {
     const token = Cookies.get("token");
     if (token != undefined) {
         try {
-            const response = await fetch("http://127.0.0.1:42069/api/token", {
-                method: "PUT",
-            });
+            const response = await fetch(
+                "http://127.0.0.1:42069/api/users/token",
+                {
+                    method: "PUT",
+                }
+            );
 
             switch (response.status) {
                 case 200:

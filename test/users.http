@@ -9,7 +9,9 @@ content-type: application/json
     "password": "ninomae_ina'nis"
 }
 
-### login
+###
+
+# @name login
 POST {{url}}/users/login
 content-type: application/json
 
@@ -17,3 +19,7 @@ content-type: application/json
     "name": "kyaruwo",
     "password": "ninomae_ina'nis"
 }
+
+### token
+PUT {{url}}/users/token
+Cookie: token={{login.response.body.$.token}};

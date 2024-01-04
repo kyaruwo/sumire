@@ -278,7 +278,7 @@ async function delete_note(id) {
     }
 
     try {
-        const response = await fetch("http://127.0.0.1:42069/api/token", {
+        const response = await fetch("http://127.0.0.1:42069/api/users/token", {
             method: "PUT",
         });
 
