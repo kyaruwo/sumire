@@ -169,7 +169,10 @@ async function show_notes() {
             onclick="show_note(${note.id})"
             class="p-4 border-4 border-white border-solid rounded cursor-pointer h-60 w-60"
         >
-            <h id="note_title_${note.id}" class="text-2xl font-semibold border-b-2 line-clamp-1"></h>
+            <h
+                id="note_title_${note.id}"
+                class="text-2xl font-semibold border-b-2 line-clamp-1"
+            ></h>
             <p id="note_body_${note.id}" class="mt-4 text-base line-clamp-6"></p>
         </div>
         `;
