@@ -1,6 +1,6 @@
 async function toast(title, body) {
-    document.getElementById("response_title").innerHTML = title;
-    document.getElementById("response_body").innerHTML = body;
+    document.getElementById("response_title").innerText = title;
+    document.getElementById("response_body").innerText = body;
 
     const toast = document.getElementById("toast").classList;
 
