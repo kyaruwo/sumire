@@ -80,7 +80,7 @@ async fn register(
             None => (),
         },
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("users > register > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -91,7 +91,7 @@ async fn register(
     ) {
         Ok(password_hash) => password_hash.to_string(),
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("users > register > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -116,7 +116,7 @@ async fn register(
             Ok(StatusCode::CREATED)
         }
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("users > register > {e}");
             Err(StatusCode::INTERNAL_SERVER_ERROR.into())
         }
     }
@@ -154,7 +154,7 @@ async fn login(
             None => return Err(StatusCode::NOT_FOUND.into()),
         },
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("users > login > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -162,7 +162,7 @@ async fn login(
     let password_hash: PasswordHash<'_> = match PasswordHash::new(&user.password_hash) {
         Ok(password_hash) => password_hash,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("users > login > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -196,7 +196,7 @@ async fn login(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("users > login > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -246,7 +246,7 @@ async fn token(
             _ => return Err(StatusCode::UNAUTHORIZED.into()),
         },
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("users > token > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     }
@@ -268,6 +268,6 @@ async fn log(user_id: u64, request: &str, response: &str, db_pool: &Pool<MySql>)
     .await
     {
         Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
+        Err(e) => eprintln!("users > log > {e}"),
     }
 }

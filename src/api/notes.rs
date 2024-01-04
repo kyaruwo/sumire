@@ -101,7 +101,7 @@ async fn write_note(
     {
         Ok(res) => res.last_insert_id(),
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("notes > write_note > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -148,7 +148,7 @@ async fn read_note(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("notes > read_note > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -200,7 +200,7 @@ async fn read_notes(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("notes > read_notes > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -260,7 +260,7 @@ async fn update_note(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("notes > update_note > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -309,7 +309,7 @@ async fn delete_note(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("notes > delete_note > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -343,7 +343,7 @@ async fn log(user_id: u64, request: &str, note_id: u64, response: &str, db_pool:
     .await
     {
         Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
+        Err(e) => eprintln!("notes > log > {e}"),
     }
 }
 
@@ -370,7 +370,7 @@ async fn get_user_id(token: &str, aes_key: &String, db_pool: &Pool<MySql>) -> Re
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("notes > get_user_id > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };

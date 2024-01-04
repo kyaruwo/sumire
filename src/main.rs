@@ -20,7 +20,7 @@ async fn main() {
         .await
     {
         Ok(pool) => pool,
-        Err(e) => return eprintln!("{e}"),
+        Err(e) => return eprintln!("main > {e}"),
     };
 
     let app: Router = Router::new()
