@@ -10,7 +10,7 @@ pub fn routes() -> Router {
 
 fn html() -> Router {
     Router::new()
-        .route_service("/", ServeFile::new("app/html/index.html"))
+        .route_service("/", ServeFile::new("app/html/landing.html"))
         .nest_service("/auth", ServeFile::new("app/html/auth.html"))
         .nest_service("/main", ServeFile::new("app/html/main.html"))
 }
