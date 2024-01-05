@@ -69,7 +69,7 @@ async function write_note() {
             case 201:
                 toast("Success", "Note written");
                 const response_json = await response.json();
-                show_note(response_json.id);
+                show_note(undefined, response_json);
                 break;
             case 401:
                 return logout();
@@ -83,8 +83,14 @@ async function write_note() {
     }
 }
 
-async function show_note(id) {
-    const note = await read_note(id);
+async function show_note(id, response_json = undefined) {
+    let note;
+    if (id) {
+        note = await read_note(id);
+    } else {
+        note = response_json;
+    }
+
     document.getElementById("main").innerHTML = `
     <div class="max-md:mx-2 md:mx-20 lg:mx-40">
         <form
