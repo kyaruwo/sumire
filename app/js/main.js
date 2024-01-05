@@ -8,7 +8,7 @@ function show_write_note() {
     <div class="max-md:mx-2 md:mx-20 lg:mx-40">
         <form
             onsubmit="write_note();return false"
-            class="flex flex-col p-4 border-4 border-white border-solid rounded"
+            class="flex flex-col rounded border-4 border-solid border-white p-4"
         >
             <input
                 id="note_title"
@@ -16,7 +16,7 @@ function show_write_note() {
                 maxlength="42"
                 placeholder="Title"
                 required
-                class="p-4 text-4xl font-semibold bg-black border-b-2 max-md:text-2xl"
+                class="border-b-2 bg-black p-4 text-4xl font-semibold max-md:text-2xl"
             />
             <textarea
                 id="note_body"
@@ -24,13 +24,13 @@ function show_write_note() {
                 maxlength="420"
                 placeholder="Body"
                 required
-                class="p-4 mt-4 text-2xl bg-black min-h-80 h-fit max-md:text-base"
+                class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
             ></textarea>
-            <div class="flex mt-4 justify-evenly max-sm:text-xs lg:text-xl">
-                <button class="p-2 px-4 bg-green-600 rounded-2xl">Write</button>
+            <div class="mt-4 flex justify-evenly max-sm:text-xs lg:text-xl">
+                <button class="rounded-2xl bg-green-600 p-2 px-4">Write</button>
                 <button
                     onclick="show_notes();return false"
-                    class="p-2 px-4 bg-orange-600 rounded-2xl"
+                    class="rounded-2xl bg-orange-600 p-2 px-4"
                 >
                     Cancel
                 </button>
@@ -89,7 +89,7 @@ async function show_note(id) {
     <div class="max-md:mx-2 md:mx-20 lg:mx-40">
         <form
             onsubmit="update_note(${note.id});return false"
-            class="flex flex-col p-4 border-4 border-white border-solid rounded"
+            class="flex flex-col rounded border-4 border-solid border-white p-4"
         >
             <input
                 id="note_title"
@@ -97,7 +97,7 @@ async function show_note(id) {
                 maxlength="42"
                 placeholder="Title"
                 required
-                class="p-4 text-4xl font-semibold bg-black border-b-2 max-md:text-2xl"
+                class="border-b-2 bg-black p-4 text-4xl font-semibold max-md:text-2xl"
             />
             <textarea
                 id="note_body"
@@ -105,19 +105,19 @@ async function show_note(id) {
                 maxlength="420"
                 placeholder="Body"
                 required
-                class="p-4 mt-4 text-2xl bg-black min-h-80 h-fit max-md:text-base"
+                class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
             ></textarea>
-            <div class="flex mt-4 justify-evenly max-sm:text-xs lg:text-xl">
-                <button class="p-2 px-4 bg-blue-600 rounded-2xl">Update</button>
+            <div class="mt-4 flex justify-evenly max-sm:text-xs lg:text-xl">
+                <button class="rounded-2xl bg-blue-600 p-2 px-4">Update</button>
                 <button
                     onclick="delete_note(${note.id});return false"
-                    class="p-2 px-4 bg-red-600 rounded-2xl"
+                    class="rounded-2xl bg-red-600 p-2 px-4"
                 >
                     Delete
                 </button>
                 <button
                     onclick="show_notes();return false"
-                    class="p-2 px-4 bg-orange-600 rounded-2xl"
+                    class="rounded-2xl bg-orange-600 p-2 px-4"
                 >
                     Return
                 </button>
@@ -156,7 +156,7 @@ async function show_notes() {
     <div class="sm:mx-20 lg:mx-32">
         <div
             id="notes"
-            class="grid gap-4 justify-items-center sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            class="grid justify-items-center gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         ></div>
     </div>
     `;
@@ -167,13 +167,13 @@ async function show_notes() {
         document.getElementById("notes").innerHTML += `
         <div
             onclick="show_note(${note.id})"
-            class="p-4 border-4 border-white border-solid rounded cursor-pointer h-60 w-60"
+            class="h-60 w-60 cursor-pointer rounded border-4 border-solid border-white p-4"
         >
             <h
                 id="note_title_${note.id}"
-                class="text-2xl font-semibold border-b-2 line-clamp-1"
+                class="line-clamp-1 border-b-2 text-2xl font-semibold"
             ></h>
-            <p id="note_body_${note.id}" class="mt-4 text-base line-clamp-6"></p>
+            <p id="note_body_${note.id}" class="mt-4 line-clamp-6 text-base"></p>
         </div>
         `;
         document.getElementById(`note_title_${note.id}`).innerText = note.title;

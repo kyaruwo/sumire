@@ -10,7 +10,7 @@ function show_register() {
             minlength="4"
             maxlength="20"
             required
-            class="p-4 text-black lowercase rounded-xl"
+            class="rounded-xl p-4 lowercase text-black"
         />
         <input
             id="password"
@@ -19,16 +19,16 @@ function show_register() {
             minlength="8"
             maxlength="69"
             required
-            class="p-4 text-black rounded-xl"
+            class="rounded-xl p-4 text-black"
         />
-        <button class="py-4 font-bold bg-green-600 rounded-xl">Register</button>
+        <button class="rounded-xl bg-green-600 py-4 font-bold">Register</button>
     </form>
 
     <hr class="my-4" />
 
     <button
         onclick="show_login()"
-        class="px-24 py-4 text-xl font-bold bg-blue-600 rounded-xl"
+        class="rounded-xl bg-blue-600 px-24 py-4 text-xl font-bold"
     >
         Login
     </button>
@@ -83,7 +83,7 @@ function show_login() {
             minlength="4"
             maxlength="20"
             required
-            class="p-4 text-black lowercase rounded-xl"
+            class="rounded-xl p-4 lowercase text-black"
         />
         <input
             id="password"
@@ -92,16 +92,16 @@ function show_login() {
             minlength="8"
             maxlength="69"
             required
-            class="p-4 text-black rounded-xl"
+            class="rounded-xl p-4 text-black"
         />
-        <button class="py-4 font-bold bg-blue-600 rounded-xl">Login</button>
+        <button class="rounded-xl bg-blue-600 py-4 font-bold">Login</button>
     </form>
 
     <hr class="my-4" />
 
     <button
         onclick="show_register()"
-        class="px-20 py-4 text-xl font-bold bg-green-600 rounded-xl"
+        class="rounded-xl bg-green-600 px-20 py-4 text-xl font-bold"
     >
         Register
     </button>

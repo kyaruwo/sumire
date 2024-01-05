@@ -16,21 +16,21 @@ function show_sumire() {
     if (!Cookies.get("token")) {
         main.innerHTML += `    
         <a
-            class="px-24 py-3 mt-12 mb-2 text-2xl bg-green-600 rounded-full max-md:px-20 max-md:text-xl"
             href="/app/html/auth.html#register"
+            class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
         >
             Register
         </a>
         <p class="max-md:text-sm">
             Already have an account?
-            <a class="text-blue-400" href="/app/html/auth.html#login">Login</a>
+            <a href="/app/html/auth.html#login" class="text-blue-400">Login</a>
         </p>
         `;
     } else {
         main.innerHTML += `    
         <a
-            class="px-24 py-3 mt-12 mb-2 text-2xl bg-green-600 rounded-full max-md:px-20 max-md:text-xl"
             href="/app/html/main.html"
+            class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
         >
             Write
         </a>
@@ -44,7 +44,7 @@ function show_about() {
     <a href="https://kyaruwo.github.io/" target="_blank">
         <img
             src="/app/assets/tako.gif"
-            class="-mt-12 max-md:size-40 max-lg:size-52 lg:size-60"
+            class="max-md:size-40 max-lg:size-52 lg:size-60 -mt-12"
     /></a>
     <h class="mt-2 text-4xl font-bold">kyaruwo</h>
     <p class="text-xl">Developer</p>
