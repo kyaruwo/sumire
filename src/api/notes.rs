@@ -130,8 +130,8 @@ async fn read_note(
         "
         SELECT
             id,
-            CONVERT(AES_DECRYPT(title, ?) USING utf8) as `title`,
-            CONVERT(AES_DECRYPT(body, ?) USING utf8) as `body`
+            CONVERT(AES_DECRYPT(`title`, ?) USING utf8) as `title`,
+            CONVERT(AES_DECRYPT(`body`, ?) USING utf8) as `body`
         FROM
             Notes
         WHERE
@@ -184,8 +184,8 @@ async fn read_notes(
         "
         SELECT
             id,
-            CONVERT(AES_DECRYPT(title, ?) USING utf8) as `title`,
-            CONVERT(AES_DECRYPT(body, ?) USING utf8) as `body`
+            CONVERT(AES_DECRYPT(`title`, ?) USING utf8) as `title`,
+            CONVERT(AES_DECRYPT(`body`, ?) USING utf8) as `body`
         FROM
             Notes
         WHERE
