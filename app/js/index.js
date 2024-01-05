@@ -16,20 +16,20 @@ function show_sumire() {
     if (!Cookies.get("token")) {
         main.innerHTML += `    
         <a
-            href="/app/html/auth.html#register"
+            href="/app/auth#register"
             class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
         >
             Register
         </a>
         <p class="max-md:text-sm">
             Already have an account?
-            <a href="/app/html/auth.html#login" class="text-blue-400">Login</a>
+            <a href="/app/auth#login" class="text-blue-400">Login</a>
         </p>
         `;
     } else {
         main.innerHTML += `    
         <a
-            href="/app/html/main.html"
+            href="/app/main"
             class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
         >
             Write

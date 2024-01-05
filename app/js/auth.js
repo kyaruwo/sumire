@@ -128,7 +128,7 @@ async function login() {
                 const response_json = await response.json();
                 Cookies.set("token", await response_json.token);
                 await toast("Success", "Redirecting");
-                location.href = "main.html";
+                location.href = "main";
                 break;
             case 404:
                 toast("Not Found", "Incorrect name or password");
@@ -159,7 +159,7 @@ async function login() {
                 case 200:
                     const response_json = await response.json();
                     Cookies.set("token", await response_json.token);
-                    location.href = "main.html";
+                    location.href = "main";
                     break;
                 default:
                     Cookies.remove("token");

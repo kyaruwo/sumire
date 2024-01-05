@@ -1,6 +1,6 @@
 function logout() {
     Cookies.remove("token");
-    location.href = "auth.html";
+    location.href = "auth";
 }
 
 function show_write_note() {
@@ -275,7 +275,7 @@ async function delete_note(id) {
     const token = Cookies.get("token");
 
     if (token == undefined) {
-        location.href = "auth.html";
+        location.href = "auth";
         return;
     }
 
@@ -291,7 +291,7 @@ async function delete_note(id) {
                 break;
             default:
                 Cookies.remove("token");
-                location.href = "auth.html";
+                location.href = "auth";
                 break;
         }
     } catch (e) {
