@@ -28,6 +28,9 @@ validator = { version = "0.16.1", features = ["derive"] }
 lazy_static = "1.4.0"
 regex = "1.10.2"
 
+# email
+lettre = "0.11.3"
+
 # password
 argon2 = "0.5.2"
 

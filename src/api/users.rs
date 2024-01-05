@@ -21,7 +21,13 @@ pub fn routes() -> Router<Pool<MySql>> {
         .route("/users/register", post(register))
         .route("/users/login", post(login))
         .route("/users/token", put(token))
-        .layer(DefaultBodyLimit::max(142))
+        .route("/users/change_email", post(change_email))
+        .route("/users/new_email", put(new_email))
+        .route("/users/name", put(update_name))
+        .route("/users/password", put(update_password))
+        .route("/users/forgot_password", post(forgot_password))
+        .route("/users/new_password", put(new_password))
+        .layer(DefaultBodyLimit::max(222))
 }
 
 lazy_static! {
@@ -250,6 +256,30 @@ async fn token(
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     }
+}
+
+async fn change_email() {
+    todo!()
+}
+
+async fn new_email() {
+    todo!()
+}
+
+async fn update_name() {
+    todo!()
+}
+
+async fn update_password() {
+    todo!()
+}
+
+async fn forgot_password() {
+    todo!()
+}
+
+async fn new_password() {
+    todo!()
 }
 
 async fn log(user_id: u64, request: &str, response: &str, db_pool: &Pool<MySql>) {
