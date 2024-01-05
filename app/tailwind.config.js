@@ -8,7 +8,7 @@ cd app & tailwindcss\tailwindcss.exe -i tailwindcss\tailwind.css -o assets\sumir
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ["index.html", "html/*.html", "js/*.js"],
+    content: ["html/*.html", "js/*.js"],
     theme: {
         extend: {},
     },
