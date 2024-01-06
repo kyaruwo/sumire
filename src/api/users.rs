@@ -19,6 +19,8 @@ use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::Validate;
 use {lazy_static::lazy_static, regex::Regex};
 
+use crate::config::SMTP;
+
 pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/users/register", post(register))
@@ -64,6 +66,7 @@ struct Conflict {
 async fn register(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
+    Extension(smtp): Extension<SMTP>,
     Json(payload): Json<RegisterUser>,
 ) -> Result<StatusCode> {
     match payload.validate() {
@@ -160,6 +163,7 @@ async fn register(
     {
         Ok(res) => {
             log(res.last_insert_id(), "register", "created", &db_pool).await;
+            smtp.send_code(payload.email, code);
             Ok(StatusCode::CREATED)
         }
         Err(e) => {
