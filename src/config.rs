@@ -1,3 +1,8 @@
+use axum::http::StatusCode;
+use lettre::message::header::ContentType;
+use lettre::message::Mailbox;
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::{Message, SmtpTransport, Transport};
 use tokio::net::TcpListener;
 
 pub struct Config {
@@ -5,6 +10,7 @@ pub struct Config {
     pub address: String,
     pub database_url: String,
     pub aes_key: String,
+    pub smtp: SMTP,
 }
 
 pub async fn load() -> Config {
@@ -23,10 +29,83 @@ pub async fn load() -> Config {
     let aes_key: String =
         dotenvy::var("AES_KEY").expect("\"AES_KEY\" is missing from \".env\" file");
 
+    let smtp: SMTP = SMTP::load();
+
     Config {
         address,
         tcp_listener,
         database_url,
         aes_key,
+        smtp,
+    }
+}
+
+#[derive(Clone)]
+pub struct SMTP {
+    host: String,
+    credentials: Credentials,
+    from: Mailbox,
+}
+
+impl SMTP {
+    fn load() -> SMTP {
+        let host: String =
+            dotenvy::var("SMTP_HOST").expect("\"SMTP_HOST\"  is missing from \".env\" file");
+
+        let username: String =
+            dotenvy::var("SMTP_USERNAME").expect("\"SMTP_USERNAME\" is missing from \".env\" file");
+
+        let password: String =
+            dotenvy::var("SMTP_PASSWORD").expect("\"SMTP_PASSWORD\" is missing from \".env\" file");
+
+        let credentials: Credentials = Credentials::new(username, password);
+
+        let from: String =
+            dotenvy::var("SMTP_FROM").expect("\"SMTP_FROM\" is missing from \".env\" file");
+
+        let from: Mailbox = from.parse().expect("\"SMTP_FROM\" is invalid");
+
+        SMTP {
+            host,
+            credentials,
+            from,
+        }
+    }
+
+    pub fn send_code(self, to: String, code: u64) -> StatusCode {
+        let to: Mailbox = match to.parse() {
+            Ok(to) => to,
+            Err(e) => {
+                eprintln!("smtp > send_code > {e}");
+                return StatusCode::INTERNAL_SERVER_ERROR;
+            }
+        };
+
+        let message: Message = match Message::builder()
+            .from(self.from)
+            .to(to)
+            .subject("sumire: code")
+            .header(ContentType::TEXT_PLAIN)
+            .body(code.to_string())
+        {
+            Ok(message) => message,
+            Err(e) => {
+                eprintln!("smtp > send_code > {e}");
+                return StatusCode::INTERNAL_SERVER_ERROR;
+            }
+        };
+
+        let mailer: SmtpTransport = SmtpTransport::relay(&self.host)
+            .unwrap()
+            .credentials(self.credentials)
+            .build();
+
+        match mailer.send(&message) {
+            Ok(_) => StatusCode::OK,
+            Err(e) => {
+                eprintln!("smtp > send_code > {e}");
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
     }
 }

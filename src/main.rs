@@ -22,6 +22,7 @@ async fn main() {
         .nest("/api", api::routes())
         .with_state(db_pool)
         .layer(Extension(config.aes_key))
+        .layer(Extension(config.smtp))
         .nest("/app", app::routes());
 
     println!("\nsumire is alive\n");
