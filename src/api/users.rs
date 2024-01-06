@@ -10,7 +10,10 @@ use axum::{
     Extension, Json, Router,
 };
 use axum_extra::extract::CookieJar;
-use rand::distributions::{Alphanumeric, DistString};
+use rand::{
+    distributions::{Alphanumeric, DistString},
+    Rng,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlQueryResult, FromRow, MySql, Pool};
 use validator::Validate;
@@ -19,14 +22,15 @@ use {lazy_static::lazy_static, regex::Regex};
 pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/users/register", post(register))
+        .route("/users/verify_email", post(verify_email))
+        .route("/users/forgot_password", post(forgot_password))
+        .route("/users/new_password", put(new_password))
         .route("/users/login", post(login))
         .route("/users/token", put(token))
         .route("/users/change_email", post(change_email))
         .route("/users/new_email", put(new_email))
         .route("/users/name", put(update_name))
         .route("/users/password", put(update_password))
-        .route("/users/forgot_password", post(forgot_password))
-        .route("/users/new_password", put(new_password))
         .layer(DefaultBodyLimit::max(222))
 }
 
@@ -127,12 +131,15 @@ async fn register(
         }
     };
 
+    let code: u64 = rand::thread_rng().gen_range(10000000..99999999);
+
     match sqlx::query(
         "
         INSERT INTO
-            Users (`email`, `name`, `password`)
+            Users (`email`, `name`, `password`, `code`)
         VALUES
             (
+                AES_ENCRYPT(?, ?),
                 AES_ENCRYPT(?, ?),
                 AES_ENCRYPT(?, ?),
                 AES_ENCRYPT(?, ?)
@@ -144,6 +151,8 @@ async fn register(
     .bind(&payload.name)
     .bind(&aes_key)
     .bind(&password_hash)
+    .bind(&aes_key)
+    .bind(&code)
     .bind(&aes_key)
     .execute(&db_pool)
     .await
@@ -157,6 +166,10 @@ async fn register(
             Err(StatusCode::INTERNAL_SERVER_ERROR.into())
         }
     }
+}
+
+async fn verify_email() {
+    todo!()
 }
 
 #[derive(Deserialize, Validate)]
