@@ -1,10 +1,13 @@
 @url = http://127.0.0.1:42069/api
 
+@email = testmail
+
 ### register
 POST {{url}}/users/register
 content-type: application/json
 
 {
+    "email": "{{email}}@gmail.com",
     "name": "kyaruwo",
     "password": "ninomae_ina'nis"
 }

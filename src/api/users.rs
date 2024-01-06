@@ -35,7 +35,13 @@ lazy_static! {
 }
 
 #[derive(Deserialize, Validate)]
-struct User {
+struct RegisterUser {
+    #[validate(
+        email(message = "invalid_email"),
+        contains(pattern = "@gmail.com", message = "only_gmail"),
+        length(min = 16, max = 40, message = "length_email")
+    )]
+    email: String,
     #[validate(
         regex(path = "USER_NAME", code = "invalid", message = "invalid_name"),
         length(min = 4, max = 20, message = "length_name")
@@ -45,25 +51,44 @@ struct User {
     password: String,
 }
 
-#[derive(FromRow)]
-struct Password {
-    id: u64,
-    password_hash: String,
-}
-
 #[derive(Serialize)]
-struct Token {
-    token: String,
+struct Conflict {
+    cause: &'static str,
 }
 
 async fn register(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Json(payload): Json<User>,
+    Json(payload): Json<RegisterUser>,
 ) -> Result<StatusCode> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
         _ => (),
+    };
+
+    match sqlx::query(
+        "
+        SELECT
+            id
+        FROM
+            Users
+        WHERE
+            `email` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(&payload.email)
+    .bind(&aes_key)
+    .fetch_optional(&db_pool)
+    .await
+    {
+        Ok(res) => match res {
+            Some(_) => return Err((StatusCode::CONFLICT, Json(Conflict { cause: "email" })).into()),
+            None => (),
+        },
+        Err(e) => {
+            eprintln!("users > register > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
     };
 
     match sqlx::query(
@@ -82,7 +107,7 @@ async fn register(
     .await
     {
         Ok(res) => match res {
-            Some(_) => return Err(StatusCode::CONFLICT.into()),
+            Some(_) => return Err((StatusCode::CONFLICT, Json(Conflict { cause: "name" })).into()),
             None => (),
         },
         Err(e) => {
@@ -105,11 +130,17 @@ async fn register(
     match sqlx::query(
         "
         INSERT INTO
-            Users (`name`, `password`)
+            Users (`email`, `name`, `password`)
         VALUES
-            (AES_ENCRYPT(?, ?), AES_ENCRYPT(?, ?));
+            (
+                AES_ENCRYPT(?, ?),
+                AES_ENCRYPT(?, ?),
+                AES_ENCRYPT(?, ?)
+            );
         ",
     )
+    .bind(&payload.email)
+    .bind(&aes_key)
     .bind(&payload.name)
     .bind(&aes_key)
     .bind(&password_hash)
@@ -128,10 +159,32 @@ async fn register(
     }
 }
 
+#[derive(Deserialize, Validate)]
+struct LoginUser {
+    #[validate(
+        regex(path = "USER_NAME", code = "invalid", message = "invalid_name"),
+        length(min = 4, max = 20, message = "length_name")
+    )]
+    name: String,
+    #[validate(length(min = 8, max = 69, message = "length_password"))]
+    password: String,
+}
+
+#[derive(FromRow)]
+struct Password {
+    id: u64,
+    password_hash: String,
+}
+
+#[derive(Serialize)]
+struct Token {
+    token: String,
+}
+
 async fn login(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Json(payload): Json<User>,
+    Json(payload): Json<LoginUser>,
 ) -> Result<Json<Token>> {
     match payload.validate() {
         Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
