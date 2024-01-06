@@ -8,6 +8,11 @@
 ADDRESS=127.0.0.1:42069
 DATABASE_URL=mysql://username:password@127.0.0.1/database_name
 AES_KEY=aes_key
+
+SMTP_HOST=smtp.gmail.com
+SMTP_USERNAME=username@gmail.com
+SMTP_PASSWORD=password
+SMTP_FROM=username@gmail.com
 ```
 
 <br />
