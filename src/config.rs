@@ -72,12 +72,12 @@ impl SMTP {
         }
     }
 
-    pub fn send_code(self, to: String, code: u64) -> StatusCode {
+    pub fn send_code(self, to: String, code: u64) -> Result<(), StatusCode> {
         let to: Mailbox = match to.parse() {
             Ok(to) => to,
             Err(e) => {
                 eprintln!("smtp > send_code > {e}");
-                return StatusCode::INTERNAL_SERVER_ERROR;
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
             }
         };
 
@@ -91,7 +91,7 @@ impl SMTP {
             Ok(message) => message,
             Err(e) => {
                 eprintln!("smtp > send_code > {e}");
-                return StatusCode::INTERNAL_SERVER_ERROR;
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
             }
         };
 
@@ -101,10 +101,10 @@ impl SMTP {
             .build();
 
         match mailer.send(&message) {
-            Ok(_) => StatusCode::OK,
+            Ok(_) => Ok(()),
             Err(e) => {
                 eprintln!("smtp > send_code > {e}");
-                StatusCode::INTERNAL_SERVER_ERROR
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
             }
         }
     }
