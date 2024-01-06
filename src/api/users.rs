@@ -137,6 +137,11 @@ async fn register(
 
     let code: u64 = rand::thread_rng().gen_range(10000000..99999999);
 
+    match smtp.send_code(payload.email.clone(), code) {
+        Err(e) => return Err(e.into()),
+        Ok(()) => (),
+    }
+
     match sqlx::query(
         "
         INSERT INTO
@@ -163,7 +168,6 @@ async fn register(
     {
         Ok(res) => {
             log(res.last_insert_id(), "register", "created", &db_pool).await;
-            smtp.send_code(payload.email, code);
             Ok(StatusCode::CREATED)
         }
         Err(e) => {
