@@ -35,15 +35,16 @@ pub fn routes() -> Router<Pool<MySql>> {
 }
 
 lazy_static! {
+    static ref EMAIL: Regex = Regex::new(r"^[a-z0-9](\.?[a-z0-9]){5,29}\@(gmail|googlemail)\.com$")
+        .expect("EMAIL Regex Error");
     static ref USER_NAME: Regex = Regex::new(r"^[a-z]{4,20}$").expect("USER_NAME Regex Error");
 }
 
 #[derive(Deserialize, Validate)]
 struct RegisterUser {
     #[validate(
-        email(message = "invalid_email"),
-        contains(pattern = "@gmail.com", message = "only_gmail"),
-        length(min = 16, max = 40, message = "length_email")
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
     )]
     email: String,
     #[validate(
