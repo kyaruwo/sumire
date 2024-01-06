@@ -7,7 +7,8 @@ pub struct Config {
 pub fn load() -> Config {
     dotenvy::dotenv().expect("\".env\" file is missing");
 
-    let address = dotenvy::var("ADDRESS").expect("\"ADDRESS\"  is missing from \".env\" file");
+    let address: String =
+        dotenvy::var("ADDRESS").expect("\"ADDRESS\"  is missing from \".env\" file");
 
     let database_url: String =
         dotenvy::var("DATABASE_URL").expect("\"DATABASE_URL\" is missing from \".env\" file");
