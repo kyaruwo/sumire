@@ -11,8 +11,8 @@ CREATE TABLE Users (
     `password` BLOB NOT NULL,
     `token` VARBINARY(432) UNIQUE,
     `code` VARBINARY(20) UNIQUE,
-    `code_retry` BIGINT DEFAULT 0,
-    `code_limit` BIGINT DEFAULT 1,
+    `code_retry` BIGINT UNSIGNED DEFAULT 0,
+    `code_limit` BIGINT UNSIGNED DEFAULT 0,
     `verified` BOOLEAN DEFAULT 0
 );
 
@@ -24,7 +24,7 @@ SET
 
 CREATE TABLE UsersLogs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` BIGINT NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
     `request` TEXT NOT NULL,
     `response` TEXT NOT NULL,
     `datetime` DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -32,16 +32,16 @@ CREATE TABLE UsersLogs (
 
 CREATE TABLE Notes (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` BIGINT NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
     `title` VARBINARY(54) NOT NULL,
     `body` VARBINARY(432) NOT NULL
 );
 
 CREATE TABLE NotesLogs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` BIGINT NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
     `request` TEXT NOT NULL,
-    `note_id` BIGINT NOT NULL,
+    `note_id` BIGINT UNSIGNED NOT NULL,
     `response` TEXT NOT NULL,
     `datetime` DATETIME DEFAULT CURRENT_TIMESTAMP
 );

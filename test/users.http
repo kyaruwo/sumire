@@ -12,6 +12,14 @@ content-type: application/json
     "password": "ninomae_ina'nis"
 }
 
+### request_code
+POST {{url}}/users/request_code
+content-type: application/json
+
+{
+    "email": "{{email}}"
+}
+
 ###
 
 # @name login

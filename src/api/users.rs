@@ -24,6 +24,7 @@ use crate::config::SMTP;
 pub fn routes() -> Router<Pool<MySql>> {
     Router::new()
         .route("/users/register", post(register))
+        .route("/users/request_code", post(request_code))
         .route("/users/verify_email", post(verify_email))
         .route("/users/forgot_password", post(forgot_password))
         .route("/users/new_password", put(new_password))
@@ -66,7 +67,6 @@ struct Conflict {
 async fn register(
     State(db_pool): State<Pool<MySql>>,
     Extension(aes_key): Extension<String>,
-    Extension(smtp): Extension<SMTP>,
     Json(payload): Json<RegisterUser>,
 ) -> Result<StatusCode> {
     match payload.validate() {
@@ -135,20 +135,12 @@ async fn register(
         }
     };
 
-    let code: u64 = rand::thread_rng().gen_range(10000000..99999999);
-
-    match smtp.send_code(payload.email.clone(), code) {
-        Err(e) => return Err(e.into()),
-        Ok(()) => (),
-    }
-
     match sqlx::query(
         "
         INSERT INTO
-            Users (`email`, `name`, `password`, `code`)
+            Users (`email`, `name`, `password`)
         VALUES
             (
-                AES_ENCRYPT(?, ?),
                 AES_ENCRYPT(?, ?),
                 AES_ENCRYPT(?, ?),
                 AES_ENCRYPT(?, ?)
@@ -161,8 +153,6 @@ async fn register(
     .bind(&aes_key)
     .bind(&password_hash)
     .bind(&aes_key)
-    .bind(&code)
-    .bind(&aes_key)
     .execute(&db_pool)
     .await
     {
@@ -174,6 +164,101 @@ async fn register(
             eprintln!("users > register > {e}");
             Err(StatusCode::INTERNAL_SERVER_ERROR.into())
         }
+    }
+}
+
+#[derive(Deserialize, Validate)]
+struct RequestCode {
+    #[validate(
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
+    )]
+    email: String,
+}
+
+#[derive(FromRow)]
+struct CodeLimit {
+    id: u64,
+    code_limit: u64,
+}
+
+async fn request_code(
+    State(db_pool): State<Pool<MySql>>,
+    Extension(aes_key): Extension<String>,
+    Extension(smtp): Extension<SMTP>,
+    Json(payload): Json<RequestCode>,
+) -> Result<StatusCode> {
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let user: CodeLimit = match sqlx::query_as::<_, CodeLimit>(
+        "
+        SELECT
+            id,
+            `code_limit`
+        FROM
+            Users
+        WHERE
+            `email` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(&payload.email)
+    .bind(&aes_key)
+    .fetch_optional(&db_pool)
+    .await
+    {
+        Ok(user) => match user {
+            Some(user) => user,
+            None => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => {
+            eprintln!("users > send_code > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    if user.code_limit >= 4 {
+        return Err(StatusCode::TOO_MANY_REQUESTS.into());
+    }
+
+    let code: u64 = rand::thread_rng().gen_range(10000000..99999999);
+
+    match sqlx::query(
+        "
+        UPDATE
+            Users
+        SET
+            `code` = AES_ENCRYPT(?, ?),
+            `code_limit` = `code_limit` + 1
+        WHERE
+            `email` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(&code)
+    .bind(&aes_key)
+    .bind(&payload.email)
+    .bind(&aes_key)
+    .execute(&db_pool)
+    .await
+    {
+        Ok(res) => match res.rows_affected() {
+            1 => (),
+            _ => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => {
+            eprintln!("users > send_code > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match smtp.send_code(payload.email, code) {
+        Ok(()) => {
+            log(user.id, "send_code", "success", &db_pool).await;
+            Ok(StatusCode::OK)
+        }
+        Err(e) => return Err(e.into()),
     }
 }
 
