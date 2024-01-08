@@ -20,6 +20,15 @@ content-type: application/json
     "email": "{{email}}"
 }
 
+### verify_email
+POST {{url}}/users/verify_email
+content-type: application/json
+
+{
+    "email": "{{email}}",
+    "code": 88888888
+}
+
 ###
 
 # @name login

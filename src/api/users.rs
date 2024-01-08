@@ -262,8 +262,122 @@ async fn request_code(
     }
 }
 
-async fn verify_email() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct VerifyEmail {
+    #[validate(
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
+    )]
+    email: String,
+    #[validate(range(min = 10000000, max = 99999999, message = "range_code"))]
+    code: u64,
+}
+
+#[derive(FromRow)]
+struct CodeRetry {
+    id: u64,
+    code: u64,
+    code_retry: u64,
+}
+
+async fn verify_email(
+    State(db_pool): State<Pool<MySql>>,
+    Extension(aes_key): Extension<String>,
+    Json(payload): Json<VerifyEmail>,
+) -> Result<StatusCode> {
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let user: CodeRetry = match sqlx::query_as::<_, CodeRetry>(
+        "
+        SELECT
+            id,
+            CONVERT(AES_DECRYPT(`code`, ?) USING utf8) as `code`,
+            `code_retry`
+        FROM
+            Users
+        WHERE
+            `email` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(&payload.email)
+    .bind(&aes_key)
+    .fetch_optional(&db_pool)
+    .await
+    {
+        Ok(user) => match user {
+            Some(user) => user,
+            None => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => {
+            eprintln!("users > verify_email > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    if user.code_retry >= 8 {
+        return Err(StatusCode::TOO_MANY_REQUESTS.into());
+    }
+
+    match sqlx::query(
+        "
+        UPDATE
+            Users
+        SET
+            `code_retry` = `code_retry` + 1
+        WHERE
+            `email` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(&payload.email)
+    .bind(&aes_key)
+    .execute(&db_pool)
+    .await
+    {
+        Ok(res) => match res.rows_affected() {
+            1 => (),
+            _ => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => {
+            eprintln!("users > verify_email > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    if payload.code != user.code {
+        return Err(StatusCode::NOT_FOUND.into());
+    }
+
+    match sqlx::query(
+        "
+        UPDATE
+            Users
+        SET
+            `code` = NULL,
+            `verified` = 1
+        WHERE
+            `email` = AES_ENCRYPT(?, ?);
+        ",
+    )
+    .bind(&payload.email)
+    .bind(&aes_key)
+    .execute(&db_pool)
+    .await
+    {
+        Ok(res) => match res.rows_affected() {
+            1 => (),
+            _ => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => {
+            eprintln!("users > verify_email > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    log(user.id, "verify_email", "success", &db_pool).await;
+    Ok(StatusCode::OK)
 }
 
 #[derive(Deserialize, Validate)]
