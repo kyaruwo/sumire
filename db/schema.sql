@@ -20,6 +20,7 @@ CREATE EVENT `RESET_code_limit` ON SCHEDULE EVERY 1 DAY STARTS '2024-01-05 00:00
 UPDATE
     Users
 SET
+    `code_retry` = 0,
     `code_limit` = 0;
 
 CREATE TABLE UsersLogs (
