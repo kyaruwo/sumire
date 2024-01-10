@@ -9,3 +9,45 @@ authors = ["kyaruwo"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+# core
+tokio = { version = "1.35.1", features = ["full"] }
+axum = { version = "0.7.3" }
+axum-extra = { version = "0.9.1", features = ["cookie"] }
+tower-http = { version = "0.5.0", features = ["fs"] }
+
+# database
+sqlx = { version = "0.7.3", features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "postgres",
+    "uuid",
+    "chrono",
+] }
+uuid = { version = "1.6.1", features = ["v4", "serde"] }
+chrono = { version = "0.4.31", features = ["serde"] }
+
+# json
+serde = { version = "1.0.195", features = ["derive"] }
+
+# regex
+lazy_static = "1.4.0"
+regex = "1.10.2"
+
+# data
+validator = { version = "0.16.1", features = ["derive"] }
+
+# data encryption
+aes = "0.8.3"
+
+# password
+argon2 = "0.5.2"
+
+# token
+rand = "0.8.5"
+
+# mailer
+lettre = "0.11.3"
+
+# environment variables
+dotenvy = "0.15.7"
