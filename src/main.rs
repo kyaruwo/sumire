@@ -3,6 +3,7 @@ use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 mod api;
 mod config;
+mod wah;
 
 #[tokio::main]
 async fn main() {
@@ -14,7 +15,10 @@ async fn main() {
         .await
         .expect("database connections failed");
 
-    let router: Router = Router::new().nest("/api", api::routes()).with_state(pool);
+    let router: Router = Router::new()
+        .nest("/wah", wah::routes())
+        .nest("/api", api::routes())
+        .with_state(pool);
 
     println!("\nsumire is alive\n");
     println!(" backend @ http://{}/api", config.address);
