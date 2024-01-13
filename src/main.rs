@@ -1,8 +1,9 @@
-use axum::{serve, Router};
+use axum::{serve, Extension, Router};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 mod api;
 mod config;
+mod smtp;
 mod wah;
 
 #[tokio::main]
@@ -15,10 +16,13 @@ async fn main() {
         .await
         .expect("database connections failed");
 
+    let smtp = smtp::load();
+
     let router: Router = Router::new()
         .nest("/wah", wah::routes())
         .nest("/api", api::routes())
-        .with_state(pool);
+        .with_state(pool)
+        .layer(Extension(smtp));
 
     println!("\nsumire is alive\n");
     println!(" backend @ http://{}/api", config.address);
