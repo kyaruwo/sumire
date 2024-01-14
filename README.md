@@ -22,11 +22,3 @@ backend
 
 -   1.75.0 rust
 -   [crates](Cargo.toml)
-
-<br />
-
-## development environment
-
-Visual Studio Code
-
--   [REST Client](https://github.com/Huachao/vscode-restclient)
