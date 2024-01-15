@@ -33,7 +33,7 @@ struct User {
         length(min = 4, max = 20, message = "length_name")
     )]
     username: String,
-    #[validate(length(min = 8, max = 69, message = "length_password"))]
+    #[validate(length(min = 11, max = 69, message = "length_password"))]
     password: String,
 }
 
