@@ -6,9 +6,14 @@ use sqlx::{Pool, Postgres};
 
 pub fn routes() -> Router<Pool<Postgres>> {
     Router::new()
-        .route("/verify_email", put(verify_email))
-        .route("/change_email", post(change_email))
-        .route("/new_email", put(new_email))
+        .route("/code", post(email_code))
+        .route("/verify", put(verify_email))
+        .route("/change", post(change_email))
+        .route("/new", put(new_email))
+}
+
+async fn email_code() {
+    todo!()
 }
 
 async fn verify_email() {

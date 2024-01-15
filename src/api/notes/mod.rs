@@ -5,8 +5,8 @@ mod write;
 
 pub fn routes() -> axum::Router<sqlx::Pool<sqlx::Postgres>> {
     axum::Router::new()
-        .merge(delete::routes())
+        .merge(write::routes())
         .merge(read::routes())
         .merge(update::routes())
-        .merge(write::routes())
+        .merge(delete::routes())
 }

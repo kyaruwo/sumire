@@ -6,9 +6,9 @@ mod username;
 
 pub fn routes() -> axum::Router<sqlx::Pool<sqlx::Postgres>> {
     axum::Router::new()
-        .merge(email::routes())
-        .merge(login::routes())
-        .merge(password::routes())
-        .merge(register::routes())
-        .merge(username::routes())
+        .nest("/register", register::routes())
+        .nest("/login", login::routes())
+        .nest("/email", email::routes())
+        .nest("/username", username::routes())
+        .nest("/password", password::routes())
 }

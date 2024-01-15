@@ -12,7 +12,7 @@ use validator::Validate;
 use {lazy_static::lazy_static, regex::Regex};
 
 pub fn routes() -> Router<Pool<Postgres>> {
-    Router::new().route("/register", post(register))
+    Router::new().route("/", post(register))
 }
 
 lazy_static! {

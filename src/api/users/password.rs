@@ -6,9 +6,9 @@ use sqlx::{Pool, Postgres};
 
 pub fn routes() -> Router<Pool<Postgres>> {
     Router::new()
-        .route("/password", put(update_password))
-        .route("/forgot_password", post(forgot_password))
-        .route("/new_password", put(new_password))
+        .route("/", put(update_password))
+        .route("/forgot", post(forgot_password))
+        .route("/new", put(new_password))
 }
 
 async fn update_password() {
