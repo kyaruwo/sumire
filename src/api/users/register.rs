@@ -86,13 +86,13 @@ async fn register(
     match error.as_database_error() {
         Some(e) => {
             if e.constraint() == Some("users_username_key") {
-                return Err((StatusCode::CONFLICT, "USERNAME Taken").into());
+                return Err((StatusCode::CONFLICT, "USERNAME").into());
             }
             if e.constraint() == Some("users_email_key") {
-                return Err((StatusCode::CONFLICT, "EMAIL Taken").into());
+                return Err((StatusCode::CONFLICT, "EMAIL").into());
             }
             if e.constraint() == Some("users_pkey") {
-                return Err((StatusCode::CONFLICT, "UUID Collision").into());
+                return Err((StatusCode::CONFLICT, "UUID").into());
             }
         }
         None => (),
