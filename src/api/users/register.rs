@@ -85,13 +85,16 @@ async fn register(
 
     match error.as_database_error() {
         Some(e) => {
-            if e.constraint() == Some("users_email_key") {
-                return Err((StatusCode::CONFLICT, "EMAIL Taken").into());
-            }
             if e.constraint() == Some("users_username_key") {
                 return Err((StatusCode::CONFLICT, "USERNAME Taken").into());
             }
-            return Err(StatusCode::NOT_IMPLEMENTED.into());
+            if e.constraint() == Some("users_email_key") {
+                return Err((StatusCode::CONFLICT, "EMAIL Taken").into());
+            }
+            if e.constraint() == Some("users_pkey") {
+                return Err((StatusCode::CONFLICT, "UUID Collision").into());
+            }
+            Err(StatusCode::NOT_IMPLEMENTED.into())
         }
         None => Err(StatusCode::INTERNAL_SERVER_ERROR.into()),
     }
