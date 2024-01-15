@@ -94,8 +94,10 @@ async fn register(
             if e.constraint() == Some("users_pkey") {
                 return Err((StatusCode::CONFLICT, "UUID Collision").into());
             }
-            Err(StatusCode::NOT_IMPLEMENTED.into())
         }
-        None => Err(StatusCode::INTERNAL_SERVER_ERROR.into()),
+        None => (),
     }
+
+    eprintln!("users > register > error > {error}");
+    Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
