@@ -23,6 +23,7 @@ pub fn routes() -> Router<Pool<Postgres>> {
         .route("/email_code", post(email_code))
         .route("/verify_email", put(verify_email))
         .route("/login", post(login))
+        .route("/logout", post(logout))
         .route("/change_email", post(change_email))
         .route("/new_email", put(new_email))
         .route("/username", put(update_username))
@@ -127,6 +128,10 @@ async fn verify_email() {
 }
 
 async fn login() {
+    todo!()
+}
+
+async fn logout() {
     todo!()
 }
 
