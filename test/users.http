@@ -17,3 +17,12 @@ Content-Type: application/json
 {
     "email": "{{email}}"
 }
+
+### verify_email
+PUT {{url}}/verify_email
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "code": 88888888
+}

@@ -175,8 +175,55 @@ async fn code_request(
     }
 }
 
-async fn verify_email() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct VerifyEmail {
+    #[validate(
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
+    )]
+    email: String,
+    #[validate(range(min = 10000000, max = 99999999, message = "range_code"))]
+    code: i64,
+}
+
+async fn verify_email(
+    State(pool): State<Pool<Postgres>>,
+    Json(payload): Json<VerifyEmail>,
+) -> Result<StatusCode> {
+    match payload.validate() {
+        Err(e) => return Err(Json(e).into()),
+        Ok(_) => (),
+    }
+
+    let res: PgQueryResult = match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        CODE = NULL,
+        VERIFIED = TRUE
+    WHERE
+        EMAIL = $1
+        AND CODE = $2
+        AND VERIFIED = FALSE;
+    ",
+    )
+    .bind(payload.email)
+    .bind(payload.code)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("users > verify_email > error > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res.rows_affected() {
+        1 => Ok(StatusCode::OK),
+        _ => Err(StatusCode::NOT_FOUND.into()),
+    }
 }
 
 async fn login() {
