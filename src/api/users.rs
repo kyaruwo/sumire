@@ -9,6 +9,7 @@ use axum::{
     routing::{post, put},
     Extension, Json, Router,
 };
+use axum_extra::extract::CookieJar;
 use chrono::Utc;
 use rand::{
     distributions::{Alphanumeric, DistString},
@@ -328,8 +329,37 @@ async fn login(
     Err((StatusCode::UNAUTHORIZED).into())
 }
 
-async fn logout() {
-    todo!()
+async fn logout(State(pool): State<Pool<Postgres>>, cookies: CookieJar) -> StatusCode {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return StatusCode::UNAUTHORIZED,
+    };
+
+    let res: PgQueryResult = match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        SESSION_ID = NULL
+    WHERE
+        SESSION_ID = $1;
+    ",
+    )
+    .bind(session_id)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("users > logout > {e}");
+            return StatusCode::INTERNAL_SERVER_ERROR;
+        }
+    };
+
+    match res.rows_affected() {
+        1 => StatusCode::OK,
+        _ => StatusCode::NOT_FOUND,
+    }
 }
 
 async fn change_email() {
