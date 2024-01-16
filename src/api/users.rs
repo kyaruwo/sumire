@@ -401,7 +401,7 @@ async fn change_email_request(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("users > change_email > {e}");
+            eprintln!("users > change_email_request > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -416,8 +416,69 @@ async fn change_email_request(
     }
 }
 
-async fn new_email() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct NewEmail {
+    #[validate(
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
+    )]
+    old_email: String,
+    #[validate(
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
+    )]
+    new_email: String,
+    #[validate(range(min = 10000000, max = 99999999, message = "range_code"))]
+    code: i64,
+}
+
+async fn new_email(
+    State(pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+    Json(payload): Json<NewEmail>,
+) -> Result<StatusCode> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let res: PgQueryResult = match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        CODE = NULL,
+        EMAIL = $1
+    WHERE
+        EMAIL = $2
+        AND CODE = $3
+        AND SESSION_ID = $4
+        AND VERIFIED = TRUE;
+    ",
+    )
+    .bind(payload.new_email)
+    .bind(payload.old_email)
+    .bind(payload.code)
+    .bind(session_id)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("users > new_email > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res.rows_affected() {
+        1 => Ok(StatusCode::OK),
+        _ => Err(StatusCode::NOT_FOUND.into()),
+    }
 }
 
 async fn update_username() {
