@@ -31,7 +31,7 @@ pub fn routes() -> Router<Pool<Postgres>> {
         .route("/users/verify_email", put(verify_email))
         .route("/users/login", post(login))
         .route("/users/logout", put(logout))
-        .route("/users/change_email", post(change_email))
+        .route("/users/change_email_request", post(change_email_request))
         .route("/users/new_email", put(new_email))
         .route("/users/username", put(update_username))
         .route("/users/password", put(update_password))
@@ -127,7 +127,7 @@ async fn register(
 }
 
 #[derive(Deserialize, Validate)]
-struct CodeRequest {
+struct Email {
     #[validate(
         regex(path = "EMAIL", code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
@@ -138,7 +138,7 @@ struct CodeRequest {
 async fn code_request(
     State(pool): State<Pool<Postgres>>,
     Extension(smtp): Extension<SMTP>,
-    Json(payload): Json<CodeRequest>,
+    Json(payload): Json<Email>,
 ) -> Result<StatusCode> {
     match payload.validate() {
         Err(e) => return Err(Json(e).into()),
@@ -154,7 +154,8 @@ async fn code_request(
     SET
         CODE = $1
     WHERE
-        EMAIL = $2;
+        EMAIL = $2
+        AND VERIFIED = FALSE;
     ",
     )
     .bind(code)
@@ -362,8 +363,57 @@ async fn logout(State(pool): State<Pool<Postgres>>, cookies: CookieJar) -> Statu
     }
 }
 
-async fn change_email() {
-    todo!()
+async fn change_email_request(
+    State(pool): State<Pool<Postgres>>,
+    Extension(smtp): Extension<SMTP>,
+    cookies: CookieJar,
+    Json(payload): Json<Email>,
+) -> Result<StatusCode> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let code: i64 = rand::thread_rng().gen_range(10000000..99999999);
+
+    let res: PgQueryResult = match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        CODE = $1
+    WHERE
+        EMAIL = $2
+        AND SESSION_ID = $3
+        AND VERIFIED = TRUE;
+    ",
+    )
+    .bind(code)
+    .bind(&payload.email)
+    .bind(session_id)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("users > change_email > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    if res.rows_affected() != 1 {
+        return Err(StatusCode::UNAUTHORIZED.into());
+    }
+
+    match smtp.send_code(payload.email, code) {
+        Ok(res) => Ok(res),
+        Err(e) => Err(e.into()),
+    }
 }
 
 async fn new_email() {

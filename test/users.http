@@ -41,3 +41,12 @@ Content-Type: application/json
 ### logout
 PUT {{url}}/logout
 Cookie: session_id={{login.response.body.$.session_id}};
+
+### change_email_request
+POST {{url}}/change_email_request
+Content-Type: application/json
+Cookie: session_id={{login.response.body.$.session_id}};
+
+{
+    "email": "{{email}}"
+}
