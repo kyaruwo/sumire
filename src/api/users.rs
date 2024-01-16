@@ -548,8 +548,105 @@ async fn update_username(
     Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
-async fn update_password() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct UpdatePassword {
+    #[validate(length(min = 11, max = 69, message = "length_password"))]
+    old_password: String,
+    #[validate(length(min = 11, max = 69, message = "length_password"))]
+    new_password: String,
+}
+
+async fn update_password(
+    State(pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+    Json(payload): Json<UpdatePassword>,
+) -> Result<StatusCode> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let user: Password = match sqlx::query_as::<_, Password>(
+        "
+        SELECT
+            PASSWORD_HASH
+        FROM
+            USERS
+        WHERE
+            SESSION_ID = $1
+            AND VERIFIED = TRUE;
+        ",
+    )
+    .bind(session_id)
+    .fetch_optional(&pool)
+    .await
+    {
+        Ok(res) => match res {
+            Some(user) => user,
+            None => return Err(StatusCode::UNAUTHORIZED.into()),
+        },
+        Err(e) => {
+            eprintln!("users > update_password > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    let password_hash: PasswordHash<'_> = match PasswordHash::new(&user.password_hash) {
+        Ok(password_hash) => password_hash,
+        Err(e) => {
+            eprintln!("users > update_password > password_hash > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match Argon2::default().verify_password(payload.old_password.as_bytes(), &password_hash) {
+        Err(_) => {
+            return Err(StatusCode::NOT_FOUND.into());
+        }
+        Ok(_) => (),
+    }
+
+    let password_hash: String = match Argon2::default().hash_password(
+        payload.new_password.as_bytes(),
+        &SaltString::generate(&mut OsRng),
+    ) {
+        Ok(password_hash) => password_hash.to_string(),
+        Err(e) => {
+            eprintln!("users > update_password > password_hash > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        PASSWORD_HASH = $1
+    WHERE
+        SESSION_ID = $2
+        AND VERIFIED = TRUE;
+    ",
+    )
+    .bind(password_hash)
+    .bind(session_id)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => match res.rows_affected() {
+            1 => return Ok(StatusCode::OK),
+            _ => return Err(StatusCode::UNAUTHORIZED.into()),
+        },
+        Err(e) => {
+            eprintln!("users > update_password > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
 }
 
 async fn forgot_password() {
