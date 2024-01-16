@@ -1,6 +1,6 @@
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
-    Argon2,
+    Argon2, PasswordHash, PasswordVerifier,
 };
 use axum::{
     extract::State,
@@ -10,9 +10,12 @@ use axum::{
     Extension, Json, Router,
 };
 use chrono::Utc;
-use rand::Rng;
-use serde::Deserialize;
-use sqlx::{postgres::PgQueryResult, Pool, Postgres};
+use rand::{
+    distributions::{Alphanumeric, DistString},
+    Rng,
+};
+use serde::{Deserialize, Serialize};
+use sqlx::{postgres::PgQueryResult, FromRow, Pool, Postgres};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -226,8 +229,103 @@ async fn verify_email(
     }
 }
 
-async fn login() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct Login {
+    #[validate(
+        regex(path = "USERNAME", code = "invalid", message = "invalid_username"),
+        length(min = 4, max = 20, message = "length_name")
+    )]
+    username: String,
+    #[validate(length(min = 11, max = 69, message = "length_password"))]
+    password: String,
+}
+
+#[derive(FromRow)]
+struct Password {
+    password_hash: String,
+}
+
+#[derive(Serialize)]
+struct SessionID {
+    session_id: String,
+}
+
+async fn login(
+    State(pool): State<Pool<Postgres>>,
+    Json(payload): Json<Login>,
+) -> Result<Json<SessionID>> {
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let user: Password = match sqlx::query_as::<_, Password>(
+        "
+        SELECT
+            PASSWORD_HASH
+        FROM
+            USERS
+        WHERE
+            USERNAME = $1;
+        ",
+    )
+    .bind(&payload.username)
+    .fetch_optional(&pool)
+    .await
+    {
+        Ok(res) => match res {
+            Some(user) => user,
+            None => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => {
+            eprintln!("users > login > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    let password_hash: PasswordHash<'_> = match PasswordHash::new(&user.password_hash) {
+        Ok(password_hash) => password_hash,
+        Err(e) => {
+            eprintln!("users > login > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match Argon2::default().verify_password(payload.password.as_bytes(), &password_hash) {
+        Err(_) => {
+            return Err(StatusCode::NOT_FOUND.into());
+        }
+        Ok(_) => (),
+    }
+
+    let session_id: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
+
+    let res: Option<bool> = match sqlx::query_scalar!(
+        "
+    UPDATE
+        USERS
+    SET
+        SESSION_ID = $1
+    WHERE
+        USERNAME = $2 RETURNING VERIFIED
+    ",
+        session_id,
+        payload.username
+    )
+    .fetch_one(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("users > login > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    if res == Some(true) {
+        return Ok(Json(SessionID { session_id }));
+    }
+    Err((StatusCode::UNAUTHORIZED).into())
 }
 
 async fn logout() {
