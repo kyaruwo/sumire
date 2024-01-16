@@ -61,3 +61,12 @@ Cookie: session_id={{login.response.body.$.session_id}};
     "new_email": "{{email}}",
     "code": 88888888
 }
+
+### username
+PUT {{url}}/username
+Content-Type: application/json
+Cookie: session_id={{login.response.body.$.session_id}};
+
+{
+    "username": "kyaruwo"
+}

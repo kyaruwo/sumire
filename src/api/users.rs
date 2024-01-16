@@ -488,8 +488,64 @@ async fn new_email(
     Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
-async fn update_username() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct UpdateUsername {
+    #[validate(
+        regex(path = "USERNAME", code = "invalid", message = "invalid_username"),
+        length(min = 4, max = 20, message = "length_name")
+    )]
+    username: String,
+}
+
+async fn update_username(
+    State(pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+    Json(payload): Json<UpdateUsername>,
+) -> Result<StatusCode> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let error: sqlx::Error = match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        USERNAME = $1
+    WHERE
+        SESSION_ID = $2
+        AND VERIFIED = TRUE;
+    ",
+    )
+    .bind(payload.username)
+    .bind(session_id)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => match res.rows_affected() {
+            1 => return Ok(StatusCode::OK),
+            _ => return Err(StatusCode::UNAUTHORIZED.into()),
+        },
+        Err(e) => e,
+    };
+
+    match error.as_database_error() {
+        Some(e) => {
+            if e.constraint() == Some("users_username_key") {
+                return Err((StatusCode::CONFLICT, "USERNAME").into());
+            }
+        }
+        None => (),
+    }
+
+    eprintln!("users > update_username > {error}");
+    Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
 async fn update_password() {
