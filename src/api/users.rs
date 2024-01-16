@@ -124,6 +124,10 @@ async fn register(
 
 #[derive(Deserialize, Validate)]
 struct CodeRequest {
+    #[validate(
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
+    )]
     email: String,
 }
 
