@@ -2,7 +2,13 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
     Argon2,
 };
-use axum::{extract::State, http::StatusCode, response::Result, routing::post, Json, Router};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::Result,
+    routing::{post, put},
+    Json, Router,
+};
 use chrono::Utc;
 use serde::Deserialize;
 use sqlx::{Pool, Postgres};
@@ -12,7 +18,17 @@ use validator::Validate;
 use {lazy_static::lazy_static, regex::Regex};
 
 pub fn routes() -> Router<Pool<Postgres>> {
-    Router::new().route("/", post(register))
+    Router::new()
+        .route("/register", post(register))
+        .route("/email_code", post(email_code))
+        .route("/verify_email", put(verify_email))
+        .route("/login", post(login))
+        .route("/change_email", post(change_email))
+        .route("/new_email", put(new_email))
+        .route("/username", put(update_username))
+        .route("/password", put(update_password))
+        .route("/forgot_password", post(forgot_password))
+        .route("/new_password", put(new_password))
 }
 
 lazy_static! {
@@ -22,7 +38,7 @@ lazy_static! {
 }
 
 #[derive(Deserialize, Validate)]
-struct User {
+struct Register {
     #[validate(
         regex(path = "EMAIL", code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
@@ -39,7 +55,7 @@ struct User {
 
 async fn register(
     State(pool): State<Pool<Postgres>>,
-    Json(payload): Json<User>,
+    Json(payload): Json<Register>,
 ) -> Result<StatusCode> {
     match payload.validate() {
         Err(e) => return Err(Json(e).into()),
@@ -100,4 +116,40 @@ async fn register(
 
     eprintln!("users > register > error > {error}");
     Err(StatusCode::INTERNAL_SERVER_ERROR.into())
+}
+
+async fn email_code() {
+    todo!()
+}
+
+async fn verify_email() {
+    todo!()
+}
+
+async fn login() {
+    todo!()
+}
+
+async fn change_email() {
+    todo!()
+}
+
+async fn new_email() {
+    todo!()
+}
+
+async fn update_username() {
+    todo!()
+}
+
+async fn update_password() {
+    todo!()
+}
+
+async fn forgot_password() {
+    todo!()
+}
+
+async fn new_password() {
+    todo!()
 }
