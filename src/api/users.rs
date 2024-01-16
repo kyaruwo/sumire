@@ -447,7 +447,7 @@ async fn new_email(
         _ => (),
     };
 
-    let res: PgQueryResult = match sqlx::query(
+    let error: sqlx::Error = match sqlx::query(
         "
     UPDATE
         USERS
@@ -468,17 +468,24 @@ async fn new_email(
     .execute(&pool)
     .await
     {
-        Ok(res) => res,
-        Err(e) => {
-            eprintln!("users > new_email > {e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
-        }
+        Ok(res) => match res.rows_affected() {
+            1 => return Ok(StatusCode::OK),
+            _ => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => e,
     };
 
-    match res.rows_affected() {
-        1 => Ok(StatusCode::OK),
-        _ => Err(StatusCode::NOT_FOUND.into()),
+    match error.as_database_error() {
+        Some(e) => {
+            if e.constraint() == Some("users_email_key") {
+                return Err((StatusCode::CONFLICT, "EMAIL").into());
+            }
+        }
+        None => (),
     }
+
+    eprintln!("users > new_email > {error}");
+    Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
 async fn update_username() {
