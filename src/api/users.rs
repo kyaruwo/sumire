@@ -122,7 +122,7 @@ async fn register(
         None => (),
     }
 
-    eprintln!("users > register > error > {error}");
+    eprintln!("users > register > {error}");
     Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
@@ -164,7 +164,7 @@ async fn code_request(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("users > code_request > error > {e}");
+            eprintln!("users > code_request > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
@@ -219,7 +219,7 @@ async fn verify_email(
     {
         Ok(res) => res,
         Err(e) => {
-            eprintln!("users > verify_email > error > {e}");
+            eprintln!("users > verify_email > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     };
