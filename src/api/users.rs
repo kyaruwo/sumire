@@ -166,7 +166,7 @@ async fn code_request(
     };
 
     if res.rows_affected() != 1 {
-        return Err(StatusCode::FORBIDDEN.into());
+        return Err(StatusCode::NOT_FOUND.into());
     }
 
     match smtp.send_code(payload.email, code) {
