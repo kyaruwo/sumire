@@ -30,7 +30,7 @@ pub fn routes() -> Router<Pool<Postgres>> {
         .route("/users/code_request", post(code_request))
         .route("/users/verify_email", put(verify_email))
         .route("/users/login", post(login))
-        .route("/users/logout", post(logout))
+        .route("/users/logout", put(logout))
         .route("/users/change_email", post(change_email))
         .route("/users/new_email", put(new_email))
         .route("/users/username", put(update_username))
