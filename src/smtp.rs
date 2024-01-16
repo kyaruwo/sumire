@@ -38,7 +38,7 @@ pub struct SMTP {
 }
 
 impl SMTP {
-    pub fn send_code(self, to: String, code: u64) -> Result<(), StatusCode> {
+    pub fn send_code(self, to: String, code: i64) -> Result<StatusCode, StatusCode> {
         let to: Mailbox = match to.parse() {
             Ok(to) => to,
             Err(e) => {
@@ -67,7 +67,7 @@ impl SMTP {
             .build();
 
         match mailer.send(&message) {
-            Ok(_) => Ok(()),
+            Ok(_) => Ok(StatusCode::OK),
             Err(e) => {
                 eprintln!("smtp > send_code > {e}");
                 Err(StatusCode::INTERNAL_SERVER_ERROR)

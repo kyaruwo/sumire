@@ -9,3 +9,11 @@ Content-Type: application/json
     "username": "kyaruwo",
     "password": "ninomae_ina'nis"
 }
+
+### code_request
+POST {{url}}/code_request
+Content-Type: application/json
+
+{
+    "email": "{{email}}"
+}

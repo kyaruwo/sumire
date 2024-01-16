@@ -7,29 +7,32 @@ use axum::{
     http::StatusCode,
     response::Result,
     routing::{post, put},
-    Json, Router,
+    Extension, Json, Router,
 };
 use chrono::Utc;
+use rand::Rng;
 use serde::Deserialize;
-use sqlx::{Pool, Postgres};
+use sqlx::{postgres::PgQueryResult, Pool, Postgres};
 use uuid::Uuid;
 use validator::Validate;
+
+use crate::smtp::SMTP;
 
 use {lazy_static::lazy_static, regex::Regex};
 
 pub fn routes() -> Router<Pool<Postgres>> {
     Router::new()
-        .route("/register", post(register))
-        .route("/email_code", post(email_code))
-        .route("/verify_email", put(verify_email))
-        .route("/login", post(login))
-        .route("/logout", post(logout))
-        .route("/change_email", post(change_email))
-        .route("/new_email", put(new_email))
-        .route("/username", put(update_username))
-        .route("/password", put(update_password))
-        .route("/forgot_password", post(forgot_password))
-        .route("/new_password", put(new_password))
+        .route("/users/register", post(register))
+        .route("/users/code_request", post(code_request))
+        .route("/users/verify_email", put(verify_email))
+        .route("/users/login", post(login))
+        .route("/users/logout", post(logout))
+        .route("/users/change_email", post(change_email))
+        .route("/users/new_email", put(new_email))
+        .route("/users/username", put(update_username))
+        .route("/users/password", put(update_password))
+        .route("/users/forgot_password", post(forgot_password))
+        .route("/users/new_password", put(new_password))
 }
 
 lazy_static! {
@@ -119,8 +122,53 @@ async fn register(
     Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
-async fn email_code() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct CodeRequest {
+    email: String,
+}
+
+async fn code_request(
+    State(pool): State<Pool<Postgres>>,
+    Extension(smtp): Extension<SMTP>,
+    Json(payload): Json<CodeRequest>,
+) -> Result<StatusCode> {
+    match payload.validate() {
+        Err(e) => return Err(Json(e).into()),
+        Ok(_) => (),
+    }
+
+    let code: i64 = rand::thread_rng().gen_range(10000000..99999999);
+
+    let res: PgQueryResult = match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        CODE = $1
+    WHERE
+        EMAIL = $2;
+    ",
+    )
+    .bind(code)
+    .bind(&payload.email)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("users > code_request > error > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    if res.rows_affected() != 1 {
+        return Err(StatusCode::FORBIDDEN.into());
+    }
+
+    match smtp.send_code(payload.email, code) {
+        Ok(res) => Ok(res),
+        Err(e) => Err(e.into()),
+    }
 }
 
 async fn verify_email() {
