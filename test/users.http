@@ -80,3 +80,11 @@ Cookie: session_id={{login.response.body.$.session_id}};
     "old_password": "ninomae_ina'nis",
     "new_password": "ninomae_ina'nis_cute"
 }
+
+### forgot_password
+POST {{url}}/forgot_password
+Content-Type: application/json
+
+{
+    "email": "{{email}}"
+}

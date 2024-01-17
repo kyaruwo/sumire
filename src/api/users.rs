@@ -649,8 +649,49 @@ async fn update_password(
     };
 }
 
-async fn forgot_password() {
-    todo!()
+async fn forgot_password(
+    State(pool): State<Pool<Postgres>>,
+    Extension(smtp): Extension<SMTP>,
+    Json(payload): Json<Email>,
+) -> Result<StatusCode> {
+    match payload.validate() {
+        Err(e) => return Err(Json(e).into()),
+        Ok(_) => (),
+    }
+
+    let code: i64 = rand::thread_rng().gen_range(10000000..99999999);
+
+    let res: PgQueryResult = match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        CODE = $1
+    WHERE
+        EMAIL = $2
+        AND VERIFIED = TRUE;
+    ",
+    )
+    .bind(code)
+    .bind(&payload.email)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("users > forgot_password > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    if res.rows_affected() != 1 {
+        return Err(StatusCode::NOT_FOUND.into());
+    }
+
+    match smtp.send_code(payload.email, code) {
+        Ok(res) => Ok(res),
+        Err(e) => Err(e.into()),
+    }
 }
 
 async fn new_password() {
