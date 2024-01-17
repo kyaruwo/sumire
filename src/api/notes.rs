@@ -113,7 +113,7 @@ async fn write_note(
         None => (),
     }
 
-    eprintln!("users > register > {error}");
+    eprintln!("users > write_note > {error}");
     Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
