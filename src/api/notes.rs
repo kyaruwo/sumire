@@ -8,7 +8,7 @@ use axum::{
 use axum_extra::extract::CookieJar;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{postgres::PgQueryResult, FromRow, Pool, Postgres};
 use uuid::Uuid;
 use validator::{Validate, ValidationError};
 
@@ -179,7 +179,7 @@ async fn read_note(
         TITLE,
         BODY
     FROM
-        Notes
+        NOTES
     WHERE
         USER_ID = $1
         AND NOTE_ID = $2;
@@ -257,8 +257,46 @@ async fn update_note(
     }
 }
 
-async fn delete_note() {
-    todo!()
+async fn delete_note(
+    State(pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+    Path(note_id): Path<Uuid>,
+) -> Result<StatusCode> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: Uuid = match get_user_id(session_id, &pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
+    let res: PgQueryResult = match sqlx::query(
+        "
+    DELETE FROM
+        NOTES
+    WHERE
+        USER_ID = $1
+        AND NOTE_ID = $2;
+    ",
+    )
+    .bind(user_id)
+    .bind(note_id)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("notes > delete_note > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res.rows_affected() {
+        1 => Ok(StatusCode::OK),
+        _ => Err(StatusCode::NOT_FOUND.into()),
+    }
 }
 
 #[derive(FromRow)]

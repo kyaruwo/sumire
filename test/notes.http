@@ -40,3 +40,7 @@ Cookie: session_id={{login.response.body.$.session_id}};
     "title": "wah",
     "body": "Ninomae Ina'nis is Super Cute"
 }
+
+### delete_note
+DELETE {{url}}/notes/{{write_note.response.body.$.note_id}}
+Cookie: session_id={{login.response.body.$.session_id}};
