@@ -133,15 +133,15 @@ async fn read_notes(
 
     let notes: Vec<Note> = match sqlx::query_as::<_, Note>(
         "
-        SELECT
-            NOTE_ID,
-            TITLE,
-            BODY
-        FROM
-            NOTES
-        WHERE
-            USER_ID = $1;
-        ",
+    SELECT
+        NOTE_ID,
+        TITLE,
+        BODY
+    FROM
+        NOTES
+    WHERE
+        USER_ID = $1;
+    ",
     )
     .bind(user_id)
     .fetch_all(&pool)
@@ -174,16 +174,16 @@ async fn read_note(
 
     let res: Option<Note> = match sqlx::query_as::<_, Note>(
         "
-        SELECT
-            NOTE_ID,
-            TITLE,
-            BODY
-        FROM
-            Notes
-        WHERE
-            USER_ID = $1
-            AND NOTE_ID = $2;
-        ",
+    SELECT
+        NOTE_ID,
+        TITLE,
+        BODY
+    FROM
+        Notes
+    WHERE
+        USER_ID = $1
+        AND NOTE_ID = $2;
+    ",
     )
     .bind(user_id)
     .bind(note_id)
@@ -203,8 +203,58 @@ async fn read_note(
     }
 }
 
-async fn update_note() {
-    todo!()
+async fn update_note(
+    State(pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+    Path(note_id): Path<Uuid>,
+    Json(payload): Json<WriteNote>,
+) -> Result<(StatusCode, Json<Note>)> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: Uuid = match get_user_id(session_id, &pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
+    match payload.validate() {
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
+
+    let note: Note = Note {
+        note_id,
+        title: String::from(payload.title.trim()),
+        body: String::from(payload.body.trim()),
+    };
+
+    match sqlx::query(
+        "
+    UPDATE
+        NOTES
+    SET
+        TITLE = $1,
+        BODY = $2
+    WHERE
+        NOTE_ID = $3
+        AND USER_ID = $4;
+    ",
+    )
+    .bind(&note.title)
+    .bind(&note.body)
+    .bind(&note.note_id)
+    .bind(user_id)
+    .execute(&pool)
+    .await
+    {
+        Ok(_) => Ok((StatusCode::CREATED, Json(note))),
+        Err(e) => {
+            eprintln!("notes > update_note > {e}");
+            Err(StatusCode::INTERNAL_SERVER_ERROR.into())
+        }
+    }
 }
 
 async fn delete_note() {

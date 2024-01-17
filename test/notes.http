@@ -30,3 +30,13 @@ Cookie: session_id={{login.response.body.$.session_id}};
 ### read_note
 GET {{url}}/notes/{{write_note.response.body.$.note_id}}
 Cookie: session_id={{login.response.body.$.session_id}};
+
+### update_note
+PUT {{url}}/notes/{{write_note.response.body.$.note_id}}
+Content-Type: application/json
+Cookie: session_id={{login.response.body.$.session_id}};
+
+{
+    "title": "wah",
+    "body": "Ninomae Ina'nis is Super Cute"
+}
