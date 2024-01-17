@@ -45,7 +45,7 @@ struct WriteNote {
 
 #[derive(Serialize, Deserialize, FromRow, Validate)]
 struct Note {
-    id: Uuid,
+    note_id: Uuid,
     #[validate(
         custom(function = "empty_string", message = "empty_string"),
         length(max = 42, message = "max_string")
@@ -79,7 +79,7 @@ async fn write_note(
     };
 
     let note: Note = Note {
-        id: Uuid::new_v4(),
+        note_id: Uuid::new_v4(),
         title: String::from(payload.title.trim()),
         body: String::from(payload.body.trim()),
     };
@@ -92,7 +92,7 @@ async fn write_note(
         ($1, $2, $3, $4, $5);
     ",
     )
-    .bind(note.id)
+    .bind(note.note_id)
     .bind(user_id)
     .bind(&note.title)
     .bind(&note.body)
@@ -117,8 +117,44 @@ async fn write_note(
     Err(StatusCode::INTERNAL_SERVER_ERROR.into())
 }
 
-async fn read_notes() {
-    todo!()
+async fn read_notes(
+    State(pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+) -> Result<Json<Vec<Note>>> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: Uuid = match get_user_id(session_id, &pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
+    let notes: Vec<Note> = match sqlx::query_as::<_, Note>(
+        "
+        SELECT
+            NOTE_ID,
+            TITLE,
+            BODY
+        FROM
+            NOTES
+        WHERE
+            USER_ID = $1;
+        ",
+    )
+    .bind(user_id)
+    .fetch_all(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("notes > read_notes > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    Ok(Json(notes))
 }
 
 async fn read_note() {
