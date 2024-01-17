@@ -243,8 +243,9 @@ struct Login {
 }
 
 #[derive(FromRow)]
-struct Password {
+struct PasswordVerified {
     password_hash: String,
+    verified: bool,
 }
 
 #[derive(Serialize)]
@@ -261,15 +262,16 @@ async fn login(
         _ => (),
     };
 
-    let user: Password = match sqlx::query_as::<_, Password>(
+    let user: PasswordVerified = match sqlx::query_as::<_, PasswordVerified>(
         "
-        SELECT
-            PASSWORD_HASH
-        FROM
-            USERS
-        WHERE
-            USERNAME = $1;
-        ",
+    SELECT
+        PASSWORD_HASH,
+        VERIFIED
+    FROM
+        USERS
+    WHERE
+        USERNAME = $1;
+    ",
     )
     .bind(&payload.username)
     .fetch_optional(&pool)
@@ -300,34 +302,33 @@ async fn login(
         Ok(_) => (),
     }
 
+    if !user.verified {
+        return Err(StatusCode::UNAUTHORIZED.into());
+    }
+
     let session_id: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
 
-    let res: Option<bool> = match sqlx::query_scalar!(
+    match sqlx::query(
         "
     UPDATE
         USERS
     SET
         SESSION_ID = $1
     WHERE
-        USERNAME = $2 RETURNING VERIFIED
+        USERNAME = $2;
     ",
-        session_id,
-        payload.username
     )
-    .fetch_one(&pool)
+    .bind(&session_id)
+    .bind(payload.username)
+    .execute(&pool)
     .await
     {
-        Ok(res) => res,
+        Ok(_) => Ok(Json(SessionID { session_id })),
         Err(e) => {
             eprintln!("users > login > {e}");
-            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+            Err(StatusCode::INTERNAL_SERVER_ERROR.into())
         }
-    };
-
-    if res == Some(true) {
-        return Ok(Json(SessionID { session_id }));
     }
-    Err((StatusCode::UNAUTHORIZED).into())
 }
 
 async fn logout(State(pool): State<Pool<Postgres>>, cookies: CookieJar) -> StatusCode {
@@ -556,6 +557,11 @@ struct UpdatePassword {
     new_password: String,
 }
 
+#[derive(FromRow)]
+struct Password {
+    password_hash: String,
+}
+
 async fn update_password(
     State(pool): State<Pool<Postgres>>,
     cookies: CookieJar,
@@ -573,14 +579,14 @@ async fn update_password(
 
     let user: Password = match sqlx::query_as::<_, Password>(
         "
-        SELECT
-            PASSWORD_HASH
-        FROM
-            USERS
-        WHERE
-            SESSION_ID = $1
-            AND VERIFIED = TRUE;
-        ",
+    SELECT
+        PASSWORD_HASH
+    FROM
+        USERS
+    WHERE
+        SESSION_ID = $1
+        AND VERIFIED = TRUE;
+    ",
     )
     .bind(session_id)
     .fetch_optional(&pool)
