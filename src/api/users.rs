@@ -694,6 +694,65 @@ async fn forgot_password(
     }
 }
 
-async fn new_password() {
-    todo!()
+#[derive(Deserialize, Validate)]
+struct NewPassword {
+    #[validate(
+        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        length(min = 16, max = 45, message = "length_email")
+    )]
+    email: String,
+    #[validate(length(min = 11, max = 69, message = "length_password"))]
+    new_password: String,
+    #[validate(range(min = 10000000, max = 99999999, message = "range_code"))]
+    code: i64,
+}
+
+async fn new_password(
+    State(pool): State<Pool<Postgres>>,
+    Json(payload): Json<NewPassword>,
+) -> Result<StatusCode> {
+    match payload.validate() {
+        Err(e) => return Err(Json(e).into()),
+        Ok(_) => (),
+    }
+
+    let password_hash: String = match Argon2::default().hash_password(
+        payload.new_password.as_bytes(),
+        &SaltString::generate(&mut OsRng),
+    ) {
+        Ok(password_hash) => password_hash.to_string(),
+        Err(e) => {
+            eprintln!("users > new_password > password_hash > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match sqlx::query(
+        "
+    UPDATE
+        USERS
+    SET
+        CODE = NULL,
+        PASSWORD_HASH = $1
+    WHERE
+        EMAIL = $2
+        AND CODE = $3
+        AND VERIFIED = TRUE;
+    ",
+    )
+    .bind(password_hash)
+    .bind(payload.email)
+    .bind(payload.code)
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => match res.rows_affected() {
+            1 => return Ok(StatusCode::OK),
+            _ => return Err(StatusCode::NOT_FOUND.into()),
+        },
+        Err(e) => {
+            eprintln!("users > new_password > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    }
 }

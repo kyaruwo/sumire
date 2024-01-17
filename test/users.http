@@ -88,3 +88,13 @@ Content-Type: application/json
 {
     "email": "{{email}}"
 }
+
+### new_password
+PUT {{url}}/new_password
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "new_password": "ninomae_ina'nis",
+    "code": 88888888
+}
