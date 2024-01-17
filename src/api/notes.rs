@@ -1,5 +1,5 @@
 use axum::{
-    extract::{DefaultBodyLimit, State},
+    extract::{DefaultBodyLimit, Path, State},
     http::StatusCode,
     response::Result,
     routing::{delete, get, post, put},
@@ -16,9 +16,9 @@ pub fn routes() -> Router<Pool<Postgres>> {
     Router::new()
         .route("/notes", post(write_note))
         .route("/notes", get(read_notes))
-        .route("/notes/:id", get(read_note))
-        .route("/notes/:id", put(update_note))
-        .route("/notes/:id", delete(delete_note))
+        .route("/notes/:note_id", get(read_note))
+        .route("/notes/:note_id", put(update_note))
+        .route("/notes/:note_id", delete(delete_note))
         .layer(DefaultBodyLimit::max(690))
 }
 
@@ -157,8 +157,50 @@ async fn read_notes(
     Ok(Json(notes))
 }
 
-async fn read_note() {
-    todo!()
+async fn read_note(
+    State(pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+    Path(note_id): Path<Uuid>,
+) -> Result<Json<Note>> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let user_id: Uuid = match get_user_id(session_id, &pool).await {
+        Err(e) => return Err(e),
+        Ok(user_id) => user_id,
+    };
+
+    let res: Option<Note> = match sqlx::query_as::<_, Note>(
+        "
+        SELECT
+            NOTE_ID,
+            TITLE,
+            BODY
+        FROM
+            Notes
+        WHERE
+            USER_ID = $1
+            AND NOTE_ID = $2;
+        ",
+    )
+    .bind(user_id)
+    .bind(note_id)
+    .fetch_optional(&pool)
+    .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("notes > read_note > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    match res {
+        Some(note) => Ok(Json(note)),
+        None => Err(StatusCode::NOT_FOUND.into()),
+    }
 }
 
 async fn update_note() {

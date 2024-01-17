@@ -13,7 +13,7 @@ Content-Type: application/json
 
 ###
 
-### write_note
+# @name write_note
 POST {{url}}/notes
 Content-Type: application/json
 Cookie: session_id={{login.response.body.$.session_id}};
@@ -25,4 +25,8 @@ Cookie: session_id={{login.response.body.$.session_id}};
 
 ### read_notes
 GET {{url}}/notes
+Cookie: session_id={{login.response.body.$.session_id}};
+
+### read_note
+GET {{url}}/notes/{{write_note.response.body.$.note_id}}
 Cookie: session_id={{login.response.body.$.session_id}};
