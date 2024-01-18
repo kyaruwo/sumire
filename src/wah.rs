@@ -1,8 +1,7 @@
 use axum::{routing::get, Json, Router};
 use serde::Serialize;
-use sqlx::{Pool, Postgres};
 
-pub fn routes() -> Router<Pool<Postgres>> {
+pub fn routes() -> Router {
     Router::new().route("/", get(wah))
 }
 

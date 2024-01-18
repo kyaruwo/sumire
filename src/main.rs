@@ -19,10 +19,10 @@ async fn main() {
     let smtp = smtp::load();
 
     let router: Router = Router::new()
-        .nest("/wah", wah::routes())
         .nest("/api", api::routes())
         .with_state(pool)
-        .layer(Extension(smtp));
+        .layer(Extension(smtp))
+        .nest("/wah", wah::routes());
 
     println!("\nsumire is alive\n");
     println!(" backend @ http://{}/api", config.address);
