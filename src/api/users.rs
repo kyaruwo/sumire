@@ -37,6 +37,7 @@ pub fn routes() -> Router<Pool<Postgres>> {
         .route("/users/password", put(update_password))
         .route("/users/forgot_password", post(forgot_password))
         .route("/users/new_password", put(new_password))
+        .route("/users/session_id", put(session_id))
 }
 
 lazy_static! {
@@ -66,9 +67,9 @@ async fn register(
     Json(payload): Json<Register>,
 ) -> Result<StatusCode> {
     match payload.validate() {
-        Err(e) => return Err(Json(e).into()),
-        Ok(_) => (),
-    }
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
 
     let password_hash: String = match Argon2::default().hash_password(
         payload.password.as_bytes(),
@@ -141,9 +142,9 @@ async fn code_request(
     Json(payload): Json<Email>,
 ) -> Result<StatusCode> {
     match payload.validate() {
-        Err(e) => return Err(Json(e).into()),
-        Ok(_) => (),
-    }
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
 
     let code: i64 = rand::thread_rng().gen_range(10000000..99999999);
 
@@ -196,9 +197,9 @@ async fn verify_email(
     Json(payload): Json<VerifyEmail>,
 ) -> Result<StatusCode> {
     match payload.validate() {
-        Err(e) => return Err(Json(e).into()),
-        Ok(_) => (),
-    }
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
 
     let res: PgQueryResult = match sqlx::query(
         "
@@ -244,6 +245,7 @@ struct Login {
 
 #[derive(FromRow)]
 struct PasswordVerified {
+    email: String,
     password_hash: String,
     verified: bool,
 }
@@ -265,6 +267,7 @@ async fn login(
     let user: PasswordVerified = match sqlx::query_as::<_, PasswordVerified>(
         "
     SELECT
+        EMAIL,
         PASSWORD_HASH,
         VERIFIED
     FROM
@@ -303,7 +306,7 @@ async fn login(
     }
 
     if !user.verified {
-        return Err(StatusCode::UNAUTHORIZED.into());
+        return Err((StatusCode::UNAUTHORIZED, user.email).into());
     }
 
     let session_id: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
@@ -661,9 +664,9 @@ async fn forgot_password(
     Json(payload): Json<Email>,
 ) -> Result<StatusCode> {
     match payload.validate() {
-        Err(e) => return Err(Json(e).into()),
-        Ok(_) => (),
-    }
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
 
     let code: i64 = rand::thread_rng().gen_range(10000000..99999999);
 
@@ -718,9 +721,9 @@ async fn new_password(
     Json(payload): Json<NewPassword>,
 ) -> Result<StatusCode> {
     match payload.validate() {
-        Err(e) => return Err(Json(e).into()),
-        Ok(_) => (),
-    }
+        Err(e) => return Err((StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into()),
+        _ => (),
+    };
 
     let password_hash: String = match Argon2::default().hash_password(
         payload.new_password.as_bytes(),
@@ -758,6 +761,47 @@ async fn new_password(
         },
         Err(e) => {
             eprintln!("users > new_password > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    }
+}
+
+async fn session_id(
+    State(db_pool): State<Pool<Postgres>>,
+    cookies: CookieJar,
+) -> Result<Json<SessionID>> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let new_session_id: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 420);
+
+    match sqlx::query(
+        "
+        UPDATE
+            USERS
+        SET
+            session_id = $1
+        WHERE
+            session_id = $2;
+        ",
+    )
+    .bind(&new_session_id)
+    .bind(session_id)
+    .execute(&db_pool)
+    .await
+    {
+        Ok(res) => match res.rows_affected() {
+            1 => {
+                return Ok(Json(SessionID {
+                    session_id: new_session_id,
+                }));
+            }
+            _ => return Err(StatusCode::UNAUTHORIZED.into()),
+        },
+        Err(e) => {
+            eprintln!("users > session_id > {e}");
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     }

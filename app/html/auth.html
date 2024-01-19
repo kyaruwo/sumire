@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="shortcut icon"
+            href="/app/assets/sumire.png"
+            type="image/x-icon"
+        />
+        <title>sumire</title>
+
+        <link rel="stylesheet" href="/app/assets/sumire.css" />
+
+        <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+        <script src="/app/js/toast.js" defer></script>
+        <script src="/app/js/auth.js" defer></script>
+    </head>
+    <body id="body" class="select-none bg-black text-white">
+        <div
+            class="grid items-center justify-items-center text-center lg:grid-cols-2 lg:py-20"
+        >
+            <div class="flex flex-col">
+                <a
+                    href="/app#sumire"
+                    class="text-8xl font-black max-lg:text-7xl"
+                    >sumire</a
+                >
+                <h class="text-4xl max-lg:text-2xl">Write down Notes</h>
+            </div>
+
+            <main id="main"></main>
+        </div>
+    </body>
+</html>

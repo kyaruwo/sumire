@@ -87,15 +87,16 @@ async fn write_note(
     let error: sqlx::Error = match sqlx::query(
         "
     INSERT INTO
-        NOTES (NOTE_ID, USER_ID, TITLE, BODY, CREATED_AT)
+        NOTES (NOTE_ID, USER_ID, TITLE, BODY, CREATED_AT, UPDATED_AT)
     VALUES
-        ($1, $2, $3, $4, $5);
+        ($1, $2, $3, $4, $5, $6);
     ",
     )
     .bind(note.note_id)
     .bind(user_id)
     .bind(&note.title)
     .bind(&note.body)
+    .bind(Utc::now())
     .bind(Utc::now())
     .execute(&pool)
     .await
@@ -140,7 +141,9 @@ async fn read_notes(
     FROM
         NOTES
     WHERE
-        USER_ID = $1;
+        USER_ID = $1
+    ORDER BY
+        UPDATED_AT DESC;
     ",
     )
     .bind(user_id)
@@ -236,20 +239,22 @@ async fn update_note(
         NOTES
     SET
         TITLE = $1,
-        BODY = $2
+        BODY = $2,
+        UPDATED_AT = $3
     WHERE
-        NOTE_ID = $3
-        AND USER_ID = $4;
+        NOTE_ID = $4
+        AND USER_ID = $5;
     ",
     )
     .bind(&note.title)
     .bind(&note.body)
+    .bind(Utc::now())
     .bind(&note.note_id)
     .bind(user_id)
     .execute(&pool)
     .await
     {
-        Ok(_) => Ok((StatusCode::CREATED, Json(note))),
+        Ok(_) => Ok((StatusCode::OK, Json(note))),
         Err(e) => {
             eprintln!("notes > update_note > {e}");
             Err(StatusCode::INTERNAL_SERVER_ERROR.into())

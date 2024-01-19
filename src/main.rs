@@ -2,6 +2,7 @@ use axum::{serve, Extension, Router};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 mod api;
+mod app;
 mod config;
 mod smtp;
 mod wah;
@@ -22,10 +23,12 @@ async fn main() {
         .nest("/api", api::routes())
         .with_state(pool)
         .layer(Extension(smtp))
+        .nest("/app", app::routes())
         .nest("/wah", wah::routes());
 
     println!("\nsumire is alive\n");
     println!(" backend @ http://{}/api", config.address);
+    println!("frontend @ http://{}/app", config.address);
 
     serve(config.tcp_listener, router.into_make_service())
         .await
