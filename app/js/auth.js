@@ -1,55 +1,60 @@
 function show_register() {
     location.hash = "register";
-    document.getElementById("main").innerHTML = `
-    <form onsubmit="register();return false" class="flex flex-col gap-2 text-xl">
-        <h class="mb-2 text-4xl font-bold lg:px-12">Create Account</h>
-        <input
-            id="email"
-            type="text"
-            placeholder="email"
-            minlength="16"
-            maxlength="45"
-            required
-            class="rounded-xl p-4 lowercase text-black"
-        />
-        <input
-            id="username"
-            type="text"
-            placeholder="username"
-            minlength="4"
-            maxlength="20"
-            required
-            class="rounded-xl p-4 lowercase text-black"
-        />
-        <input
-            id="password"
-            type="password"
-            placeholder="password"
-            minlength="11"
-            maxlength="69"
-            required
-            class="rounded-xl p-4 text-black"
-        />
-        <input
-            id="verify_password"
-            type="password"
-            placeholder="verify password"
-            minlength="11"
-            maxlength="69"
-            required
-            class="rounded-xl p-4 text-black"
-        />
-        <button class="rounded-xl bg-green-600 py-4 font-bold">Register</button>
-    </form>
+    document.getElementById("main").innerHTML = html`
+        <form
+            onsubmit="register();return false"
+            class="flex flex-col gap-2 text-xl"
+        >
+            <h class="mb-2 text-4xl font-bold lg:px-12">Create Account</h>
+            <input
+                id="email"
+                type="text"
+                placeholder="email"
+                minlength="16"
+                maxlength="45"
+                required
+                class="rounded-xl p-4 lowercase text-black"
+            />
+            <input
+                id="username"
+                type="text"
+                placeholder="username"
+                minlength="4"
+                maxlength="20"
+                required
+                class="rounded-xl p-4 lowercase text-black"
+            />
+            <input
+                id="password"
+                type="password"
+                placeholder="password"
+                minlength="11"
+                maxlength="69"
+                required
+                class="rounded-xl p-4 text-black"
+            />
+            <input
+                id="verify_password"
+                type="password"
+                placeholder="verify password"
+                minlength="11"
+                maxlength="69"
+                required
+                class="rounded-xl p-4 text-black"
+            />
+            <button class="rounded-xl bg-green-600 py-4 font-bold">
+                Register
+            </button>
+        </form>
 
-    <hr class="my-4" />
+        <hr class="my-4" />
 
-    <button
-        onclick="show_login()"
-        class="rounded-xl bg-blue-600 px-24 py-4 text-xl font-bold"
-    >
-        Login
-    </button>
+        <button
+            onclick="show_login()"
+            class="rounded-xl bg-blue-600 px-24 py-4 text-xl font-bold"
+        >
+            Login
+        </button>
     `;
 }
 
@@ -98,78 +103,78 @@ async function register() {
 
 function show_login() {
     location.hash = "login";
-    document.getElementById("main").innerHTML = `
-    <form onsubmit="login();return false" class="flex flex-col gap-4 text-xl">
-        <h class="mb-2 text-4xl font-bold lg:px-10">Login Account</h>
-        <input
-            id="username"
-            type="text"
-            placeholder="username"
-            minlength="4"
-            maxlength="20"
-            required
-            class="rounded-xl p-4 lowercase text-black"
-        />
-        <input
-            id="password"
-            type="password"
-            placeholder="password"
-            minlength="11"
-            maxlength="69"
-            required
-            class="rounded-xl p-4 text-black"
-        />
-        <button class="rounded-xl bg-blue-600 py-4 font-bold">Login</button>
-    </form>
-        
-    <button onclick="show_forgot_password()" class="mt-4 text-sm">Forgot Password?</button>
+    document.getElementById("main").innerHTML = html`
+        <form
+            onsubmit="login();return false"
+            class="flex flex-col gap-4 text-xl"
+        >
+            <h class="mb-2 text-4xl font-bold lg:px-10">Login Account</h>
+            <input
+                id="username"
+                type="text"
+                placeholder="username"
+                minlength="4"
+                maxlength="20"
+                required
+                class="rounded-xl p-4 lowercase text-black"
+            />
+            <input
+                id="password"
+                type="password"
+                placeholder="password"
+                minlength="11"
+                maxlength="69"
+                required
+                class="rounded-xl p-4 text-black"
+            />
+            <button class="rounded-xl bg-blue-600 py-4 font-bold">Login</button>
+        </form>
 
-    <hr class="my-4" />
+        <button onclick="show_forgot_password()" class="mt-4 text-sm">
+            Forgot Password?
+        </button>
 
-    <button
-        onclick="show_register()"
-        class="rounded-xl bg-green-600 px-20 py-4 text-xl font-bold"
-    >
-        Register
-    </button>
+        <hr class="my-4" />
+
+        <button
+            onclick="show_register()"
+            class="rounded-xl bg-green-600 px-20 py-4 text-xl font-bold"
+        >
+            Register
+        </button>
     `;
 }
 
 function show_forgot_password() {
     location.hash = "forgot_password";
-    document.getElementById("main").innerHTML = `
-    <form
-        onsubmit="forgot_password();return false"
-        class="flex flex-col gap-4 text-xl"
-    >
-        <h class="mb-2 text-4xl font-bold lg:px-10"
-            >Forgot Password</h
+    document.getElementById("main").innerHTML = html`
+        <form
+            onsubmit="forgot_password();return false"
+            class="flex flex-col gap-4 text-xl"
         >
-        <input
-            id="email"
-            type="text"
-            placeholder="email"
-            minlength="16"
-            maxlength="45"
-            required
-            class="rounded-xl p-4 lowercase text-black"
-        />
+            <h class="mb-2 text-4xl font-bold lg:px-10">Forgot Password</h>
+            <input
+                id="email"
+                type="text"
+                placeholder="email"
+                minlength="16"
+                maxlength="45"
+                required
+                class="rounded-xl p-4 lowercase text-black"
+            />
+            <button class="rounded-xl bg-green-600 px-6 py-4 text-xl font-bold">
+                send code
+            </button>
+        </form>
+
+        <hr class="my-4" />
+
         <button
-            class="rounded-xl bg-green-600 px-6 py-4 text-xl font-bold"
+            onclick="show_login()"
+            class="rounded-xl bg-blue-600 px-12 py-4 text-xl font-bold"
         >
-            send code
+            Login
         </button>
-    </form>
-
-    <hr class="my-4" />
-
-
-    <button
-        onclick="show_login()"
-        class="rounded-xl bg-blue-600 px-12 py-4 text-xl font-bold"
-    >
-        Login
-    </button>
     `;
 }
 
@@ -206,57 +211,53 @@ async function forgot_password() {
 }
 
 function show_new_password() {
-    document.getElementById("main").innerHTML = `
-    <form
-        onsubmit="new_password();return false"
-        class="flex flex-col gap-4 text-xl"
-    >
-        <h class="mb-2 text-4xl font-bold lg:px-10"
-            >New Password</h
+    document.getElementById("main").innerHTML = html`
+        <form
+            onsubmit="new_password();return false"
+            class="flex flex-col gap-4 text-xl"
         >
-        <input
-            id="email"
-            type="text"
-            placeholder="email"
-            minlength="16"
-            maxlength="45"
-            required
-            class="rounded-xl bg-neutral-950 p-4 lowercase"
-            disabled
-        />
-        <input
-            id="code"
-            type="number"
-            placeholder="code"
-            min="10000000"
-            max="99999999"
-            required
-            class="rounded-xl p-4 text-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        />
-        <input
-            id="password"
-            type="password"
-            placeholder="password"
-            minlength="11"
-            maxlength="69"
-            required
-            class="rounded-xl p-4 text-black"
-        />
-        <input
-            id="verify_password"
-            type="password"
-            placeholder="verify_password"
-            minlength="11"
-            maxlength="69"
-            required
-            class="rounded-xl p-4 text-black"
-        />
-        <button
-            class="rounded-xl bg-blue-600 px-6 py-4 text-xl font-bold"
-        >
-            Save
-        </button>
-    </form>
+            <h class="mb-2 text-4xl font-bold lg:px-10">New Password</h>
+            <input
+                id="email"
+                type="text"
+                placeholder="email"
+                minlength="16"
+                maxlength="45"
+                required
+                class="rounded-xl bg-neutral-950 p-4 lowercase"
+                disabled
+            />
+            <input
+                id="code"
+                type="number"
+                placeholder="code"
+                min="10000000"
+                max="99999999"
+                required
+                class="rounded-xl p-4 text-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <input
+                id="password"
+                type="password"
+                placeholder="password"
+                minlength="11"
+                maxlength="69"
+                required
+                class="rounded-xl p-4 text-black"
+            />
+            <input
+                id="verify_password"
+                type="password"
+                placeholder="verify_password"
+                minlength="11"
+                maxlength="69"
+                required
+                class="rounded-xl p-4 text-black"
+            />
+            <button class="rounded-xl bg-blue-600 px-6 py-4 text-xl font-bold">
+                Save
+            </button>
+        </form>
     `;
 }
 
@@ -304,43 +305,41 @@ async function new_password() {
 }
 
 function show_verify() {
-    document.getElementById("main").innerHTML = `
-    <form
-        onsubmit="verify();return false"
-        class="flex flex-col gap-4 text-xl"
-    >
-        <h class="mb-2 text-4xl font-bold lg:px-10"
-            >Verify Account</h
+    document.getElementById("main").innerHTML = html`
+        <form
+            onsubmit="verify();return false"
+            class="flex flex-col gap-4 text-xl"
         >
-        <input
-            id="email"
-            type="text"
-            placeholder="email"
-            minlength="16"
-            maxlength="45"
-            required
-            class="rounded-xl bg-neutral-950 p-4 lowercase"
-            disabled
-        />
-        <button
-            onclick="code_request();return false"
-            class="rounded-xl bg-green-600 px-6 py-4 text-xl font-bold"
-        >
-            send code
-        </button>
-        <input
-            id="code"
-            type="number"
-            placeholder="code"
-            min="10000000"
-            max="99999999"
-            required
-            class="rounded-xl p-4 text-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        />
-        <button class="rounded-xl bg-blue-600 py-4 font-bold">
-            Verify
-        </button>
-    </form>
+            <h class="mb-2 text-4xl font-bold lg:px-10">Verify Account</h>
+            <input
+                id="email"
+                type="text"
+                placeholder="email"
+                minlength="16"
+                maxlength="45"
+                required
+                class="rounded-xl bg-neutral-950 p-4 lowercase"
+                disabled
+            />
+            <button
+                onclick="code_request();return false"
+                class="rounded-xl bg-green-600 px-6 py-4 text-xl font-bold"
+            >
+                send code
+            </button>
+            <input
+                id="code"
+                type="number"
+                placeholder="code"
+                min="10000000"
+                max="99999999"
+                required
+                class="rounded-xl p-4 text-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <button class="rounded-xl bg-blue-600 py-4 font-bold">
+                Verify
+            </button>
+        </form>
     `;
 }
 

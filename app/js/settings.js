@@ -23,33 +23,33 @@ async function logout() {
 }
 
 function show_settings() {
-    document.getElementById("main").innerHTML = `
-    <div class="flex flex-col items-center gap-12">
-        <div class="flex flex-col gap-1">
-            <h id="email" class="text-2xl">username@googlemail.com</h
-            ><button
-                onclick="show_change_email()"
-                class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
-            >
-                change
-            </button>
-        </div>
-        <div class="flex flex-col gap-1">
-            <h id="username" class="text-2xl">username</h>
+    document.getElementById("main").innerHTML = html`
+        <div class="flex flex-col items-center gap-12">
+            <div class="flex flex-col gap-1">
+                <h id="email" class="text-2xl">username@googlemail.com</h
+                ><button
+                    onclick="show_change_email()"
+                    class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
+                >
+                    change
+                </button>
+            </div>
+            <div class="flex flex-col gap-1">
+                <h id="username" class="text-2xl">username</h>
+                <button
+                    onclick="show_update_username()"
+                    class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
+                >
+                    update
+                </button>
+            </div>
             <button
-                onclick="show_update_username()"
-                class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
+                onclick="show_update_password()"
+                class="rounded-xl bg-blue-600 px-8 py-2 text-xl"
             >
-                update
+                Update Password
             </button>
         </div>
-        <button
-            onclick="show_update_password()"
-            class="rounded-xl bg-blue-600 px-8 py-2 text-xl"
-        >
-            Update Password
-        </button>
-    </div>
     `;
 }
 
