@@ -7,14 +7,14 @@ if (location.hash == "#about") {
 function show_sumire() {
     location.hash = "sumire";
     const main = document.getElementById("main");
-    main.innerHTML = html`
+    main.innerHTML = /*html*/ `
         <h class="text-8xl max-lg:text-7xl max-md:text-6xl max-sm:text-5xl">
             Write down Notes
         </h>
     `;
 
     if (!Cookies.get("session_id")) {
-        main.innerHTML += html`
+        main.innerHTML += /*html*/ `
             <a
                 href="/app/auth#register"
                 class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
@@ -27,7 +27,7 @@ function show_sumire() {
             </p>
         `;
     } else {
-        main.innerHTML += html`
+        main.innerHTML += /*html*/ `
             <a
                 href="/app/notes"
                 class="mb-2 mt-12 rounded-full bg-green-600 px-24 py-3 text-2xl max-md:px-20 max-md:text-xl"
@@ -40,7 +40,7 @@ function show_sumire() {
 
 function show_about() {
     location.hash = "about";
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <a href="https://kyaruwo.github.io/" target="_blank">
             <img
                 src="/app/assets/tako.gif"

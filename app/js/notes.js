@@ -1,5 +1,5 @@
 function show_write_note() {
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <div class="max-md:mx-2 md:mx-20 lg:mx-40">
             <form
                 onsubmit="write_note();return false"
@@ -88,7 +88,7 @@ async function show_note(id, response_json = undefined) {
         note = response_json;
     }
 
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <div class="max-md:mx-2 md:mx-20 lg:mx-40">
             <form
                 onsubmit="update_note('${note.note_id}');return false"
@@ -160,7 +160,7 @@ async function read_note(note_id) {
 }
 
 async function show_notes() {
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <div class="sm:mx-20 lg:mx-32">
             <div
                 id="notes"
@@ -172,7 +172,7 @@ async function show_notes() {
     const notes = await read_notes();
 
     notes.forEach((note) => {
-        document.getElementById("notes").innerHTML += html`
+        document.getElementById("notes").innerHTML += /*html*/ `
             <div
                 onclick="show_note('${note.note_id}')"
                 class="h-60 w-60 cursor-pointer rounded border-4 border-solid border-white p-4"

@@ -14,7 +14,7 @@ async function toast(title, body) {
     const body = document.getElementById("body");
 
     body.innerHTML =
-        html`
+        /*html*/ `
             <div
                 id="toast"
                 class="fixed right-0 hidden h-20 w-80 rounded-xl bg-white font-bold text-black max-lg:h-16 max-lg:w-60"

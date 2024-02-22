@@ -23,7 +23,7 @@ async function logout() {
 }
 
 function show_settings() {
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <div class="flex flex-col items-center gap-12">
             <div class="flex flex-col gap-1">
                 <h id="email" class="text-2xl">username@googlemail.com</h

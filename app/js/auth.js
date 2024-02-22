@@ -1,6 +1,6 @@
 function show_register() {
     location.hash = "register";
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <form
             onsubmit="register();return false"
             class="flex flex-col gap-2 text-xl"
@@ -103,7 +103,7 @@ async function register() {
 
 function show_login() {
     location.hash = "login";
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <form
             onsubmit="login();return false"
             class="flex flex-col gap-4 text-xl"
@@ -147,7 +147,7 @@ function show_login() {
 
 function show_forgot_password() {
     location.hash = "forgot_password";
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <form
             onsubmit="forgot_password();return false"
             class="flex flex-col gap-4 text-xl"
@@ -211,7 +211,7 @@ async function forgot_password() {
 }
 
 function show_new_password() {
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <form
             onsubmit="new_password();return false"
             class="flex flex-col gap-4 text-xl"
@@ -305,7 +305,7 @@ async function new_password() {
 }
 
 function show_verify() {
-    document.getElementById("main").innerHTML = html`
+    document.getElementById("main").innerHTML = /*html*/ `
         <form
             onsubmit="verify();return false"
             class="flex flex-col gap-4 text-xl"
