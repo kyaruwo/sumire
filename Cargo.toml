@@ -11,10 +11,10 @@ authors = ["kyaruwo"]
 [dependencies]
 
 # core
-tokio = { version = "1.35.1", features = ["full"] }
+tokio = { version = "1.36.0", features = ["full"] }
 axum = { version = "0.7.4" }
-axum-extra = { version = "0.9.1", features = ["cookie"] }
-tower-http = { version = "0.5.0", features = ["fs"] }
+axum-extra = { version = "0.9.2", features = ["cookie"] }
+tower-http = { version = "0.5.2", features = ["fs"] }
 
 # database
 sqlx = { version = "0.7.3", features = [
@@ -24,27 +24,27 @@ sqlx = { version = "0.7.3", features = [
     "uuid",
     "chrono",
 ] }
-uuid = { version = "1.6.1", features = ["v4", "serde"] }
+uuid = { version = "1.7.0", features = ["v4", "serde"] }
 chrono = { version = "0.4.31", features = ["serde"] }
 
 # json
-serde = { version = "1.0.195", features = ["derive"] }
+serde = { version = "1.0.197", features = ["derive"] }
 
 # regex
 lazy_static = "1.4.0"
-regex = "1.10.2"
+regex = "1.10.3"
 
 # data
 validator = { version = "0.16.1", features = ["derive"] }
 
 # password
-argon2 = "0.5.2"
+argon2 = "0.5.3"
 
 # session_id
 rand = "0.8.5"
 
 # mailer
-lettre = "0.11.3"
+lettre = "0.11.4"
 
 # environment variables
 dotenvy = "0.15.7"
