@@ -110,12 +110,13 @@ async function show_note(id, response_json = undefined) {
                     required
                     class="min-h-80 mt-4 h-fit bg-black p-4 text-2xl max-md:text-base"
                 ></textarea>
-                <div class="mt-4 flex justify-evenly max-sm:text-xs lg:text-xl">
-                    <button class="rounded-2xl bg-blue-600 p-2 px-4">
-                        Update
-                    </button>
+                <div
+                    id="show_note_options"
+                    class="mt-4 flex justify-evenly max-sm:text-xs lg:text-xl"
+                >
+                    <button class="rounded-2xl bg-blue-600 p-2 px-4">Update</button>
                     <button
-                        onclick="delete_note('${note.note_id}');return false"
+                        onclick="toggle_note_options();return false"
                         class="rounded-2xl bg-red-600 p-2 px-4"
                     >
                         Delete
@@ -127,11 +128,43 @@ async function show_note(id, response_json = undefined) {
                         Return
                     </button>
                 </div>
+                <div
+                    id="delete_confirmation"
+                    class="mt-4 hidden justify-evenly max-sm:text-xs lg:text-xl"
+                >
+                    <button
+                        onclick="delete_note('${note.note_id}');return false"
+                        class="rounded-2xl bg-red-600 p-2 px-4"
+                    >
+                        Delete Forever
+                    </button>
+                    <button
+                        onclick="toggle_note_options();return false"
+                        class="rounded-2xl bg-green-600 p-2 px-4"
+                    >
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     `;
     document.getElementById("note_title").value = note.title;
     document.getElementById("note_body").innerHTML = note.body;
+}
+
+function toggle_note_options() {
+    const note = document.getElementById("show_note_options").classList;
+    const del = document.getElementById("delete_confirmation").classList;
+
+    if (del.contains("hidden")) {
+        del.add("flex");
+        note.add("hidden");
+        del.remove("hidden");
+    } else {
+        del.remove("flex");
+        del.add("hidden");
+        note.remove("hidden");
+    }
 }
 
 async function read_note(note_id) {
