@@ -1,5 +1,12 @@
 # sumire
 
+todo;
+
+-   [ ] settings
+    -   [ ] change email
+    -   [ ] update username
+    -   [ ] change password
+
 <br />
 
 ## .env
