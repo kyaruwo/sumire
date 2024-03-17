@@ -200,6 +200,9 @@ async function forgot_password() {
                 show_new_password();
                 document.getElementById("email").value = data.email;
                 break;
+            case 404:
+                toast("Not Found", "Incorrect email");
+                break;
             default:
                 toast("Error", "An error occurred");
                 break;
