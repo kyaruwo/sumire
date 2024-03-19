@@ -48,5 +48,10 @@ function show_about() {
         /></a>
         <h class="mt-2 text-4xl font-bold">kyaruwo</h>
         <p class="text-xl">Developer</p>
+        <a href="https://github.com/kyaruwo" target="_blank">
+            <img
+                src="https://skillicons.dev/icons?i=github&theme=dark"
+                class="max-sm:size-10 size-12 mt-2"
+        /></a>
     `;
 }
