@@ -22,7 +22,8 @@ use validator::Validate;
 
 use crate::smtp::SMTP;
 
-use {lazy_static::lazy_static, regex::Regex};
+use once_cell::sync::Lazy;
+use regex::Regex;
 
 pub fn routes() -> Router<Pool<Postgres>> {
     Router::new()
@@ -40,21 +41,23 @@ pub fn routes() -> Router<Pool<Postgres>> {
         .route("/users/session_id", put(session_id))
 }
 
-lazy_static! {
-    static ref EMAIL: Regex = Regex::new(r"^[a-z0-9](\.?[a-z0-9]){5,29}\@(gmail|googlemail)\.com$")
-        .expect("EMAIL Regex Error");
-    static ref USERNAME: Regex = Regex::new(r"^[a-z]{4,20}$").expect("USERNAME Regex Error");
-}
+static EMAIL: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^[a-z0-9](\.?[a-z0-9]){5,29}\@(gmail|googlemail)\.com$")
+        .expect("EMAIL Regex Error")
+});
+
+static USERNAME: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^[a-z]{4,20}$").expect("USERNAME Regex Error"));
 
 #[derive(Deserialize, Validate)]
 struct Register {
     #[validate(
-        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
     )]
     email: String,
     #[validate(
-        regex(path = "USERNAME", code = "invalid", message = "invalid_username"),
+        regex(path = *USERNAME, code = "invalid", message = "invalid_username"),
         length(min = 4, max = 20, message = "length_name")
     )]
     username: String,
@@ -130,7 +133,7 @@ async fn register(
 #[derive(Deserialize, Validate)]
 struct Email {
     #[validate(
-        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
     )]
     email: String,
@@ -184,7 +187,7 @@ async fn code_request(
 #[derive(Deserialize, Validate)]
 struct VerifyEmail {
     #[validate(
-        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
     )]
     email: String,
@@ -235,7 +238,7 @@ async fn verify_email(
 #[derive(Deserialize, Validate)]
 struct Login {
     #[validate(
-        regex(path = "USERNAME", code = "invalid", message = "invalid_username"),
+        regex(path = *USERNAME, code = "invalid", message = "invalid_username"),
         length(min = 4, max = 20, message = "length_name")
     )]
     username: String,
@@ -423,12 +426,12 @@ async fn change_email_request(
 #[derive(Deserialize, Validate)]
 struct NewEmail {
     #[validate(
-        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
     )]
     old_email: String,
     #[validate(
-        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
     )]
     new_email: String,
@@ -495,7 +498,7 @@ async fn new_email(
 #[derive(Deserialize, Validate)]
 struct UpdateUsername {
     #[validate(
-        regex(path = "USERNAME", code = "invalid", message = "invalid_username"),
+        regex(path = *USERNAME, code = "invalid", message = "invalid_username"),
         length(min = 4, max = 20, message = "length_name")
     )]
     username: String,
@@ -706,7 +709,7 @@ async fn forgot_password(
 #[derive(Deserialize, Validate)]
 struct NewPassword {
     #[validate(
-        regex(path = "EMAIL", code = "invalid", message = "only_google"),
+        regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
     )]
     email: String,
