@@ -6,7 +6,7 @@ use axum::{
     extract::State,
     http::StatusCode,
     response::Result,
-    routing::{post, put},
+    routing::{get, post, put},
     Extension, Json, Router,
 };
 use axum_extra::extract::CookieJar;
@@ -39,6 +39,7 @@ pub fn routes() -> Router<Pool<Postgres>> {
         .route("/users/forgot_password", post(forgot_password))
         .route("/users/new_password", put(new_password))
         .route("/users/session_id", put(session_id))
+        .route("/users/profile", get(profile))
 }
 
 static EMAIL: Lazy<Regex> = Lazy::new(|| {
@@ -770,7 +771,7 @@ async fn new_password(
 }
 
 async fn session_id(
-    State(db_pool): State<Pool<Postgres>>,
+    State(pool): State<Pool<Postgres>>,
     cookies: CookieJar,
 ) -> Result<Json<SessionID>> {
     let session_id: &str = match cookies.get("session_id") {
@@ -792,7 +793,7 @@ async fn session_id(
     )
     .bind(&new_session_id)
     .bind(session_id)
-    .execute(&db_pool)
+    .execute(&pool)
     .await
     {
         Ok(res) => match res.rows_affected() {
@@ -808,4 +809,43 @@ async fn session_id(
             return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
         }
     }
+}
+
+#[derive(FromRow, Serialize)]
+struct Profile {
+    email: String,
+    username: String,
+}
+
+async fn profile(State(pool): State<Pool<Postgres>>, cookies: CookieJar) -> Result<Json<Profile>> {
+    let session_id: &str = match cookies.get("session_id") {
+        Some(cookie) => cookie.value(),
+        None => return Err(StatusCode::UNAUTHORIZED.into()),
+    };
+
+    let profile: Profile = match sqlx::query_as::<_, Profile>(
+        "
+        SELECT
+            EMAIL, USERNAME
+        FROM
+            USERS
+        WHERE
+            session_id = $1;
+        ",
+    )
+    .bind(session_id)
+    .fetch_optional(&pool)
+    .await
+    {
+        Ok(res) => match res {
+            Some(profile) => profile,
+            None => return Err(StatusCode::UNAUTHORIZED.into()),
+        },
+        Err(e) => {
+            eprintln!("users > profile > {e}");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR.into());
+        }
+    };
+
+    Ok(Json(profile))
 }

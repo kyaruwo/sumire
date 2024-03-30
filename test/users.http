@@ -98,3 +98,8 @@ Content-Type: application/json
     "new_password": "ninomae_ina'nis",
     "code": 88888888
 }
+
+### profile
+GET {{url}}/profile
+Content-Type: application/json
+Cookie: session_id={{login.response.body.$.session_id}};
