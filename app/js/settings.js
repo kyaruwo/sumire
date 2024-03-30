@@ -22,12 +22,32 @@ async function logout() {
     }
 }
 
-function show_settings() {
+async function show_settings() {
     location.hash = "profile";
+
+    let profile;
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:42069/api/users/profile"
+        );
+
+        switch (response.status) {
+            case 200:
+                profile = await response.json();
+                break;
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+
     document.getElementById("main").innerHTML = /*html*/ `
         <div class="flex flex-col items-center gap-12">
             <div class="flex flex-col gap-1">
-                <h id="email" class="text-2xl">username@googlemail.com</h
+                <h id="email" class="text-2xl">${profile.email}</h
                 ><button
                     onclick="show_change_email()"
                     class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
@@ -36,7 +56,7 @@ function show_settings() {
                 </button>
             </div>
             <div class="flex flex-col gap-1">
-                <h id="username" class="text-2xl">username</h>
+                <h id="username" class="text-2xl">${profile.username}</h>
                 <button
                     onclick="show_update_username()"
                     class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
