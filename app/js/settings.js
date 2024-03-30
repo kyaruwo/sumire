@@ -22,10 +22,11 @@ async function logout() {
     }
 }
 
+let profile;
+
 async function show_settings() {
     location.hash = "profile";
 
-    let profile;
     try {
         const response = await fetch(
             "http://127.0.0.1:42069/api/users/profile"
@@ -45,31 +46,36 @@ async function show_settings() {
     }
 
     document.getElementById("main").innerHTML = /*html*/ `
-        <div class="flex flex-col items-center gap-12">
-            <div class="flex flex-col gap-1">
-                <h id="email" class="text-2xl">${profile.email}</h
-                ><button
-                    onclick="show_change_email()"
-                    class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
-                >
-                    change
-                </button>
+        <div class="flex items-center justify-center">
+            <div class="flex flex-col items-start gap-12">
+                <div class="flex flex-row gap-4">
+                    <button
+                        onclick="show_change_email()"
+                        class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
+                    >
+                        change
+                    </button>
+                    <h id="email" class="text-2xl">${profile.email}</h>
+                </div>
+                <div class="flex flex-row gap-4">
+                    <button
+                        onclick="show_update_username()"
+                        class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
+                    >
+                        update
+                    </button>
+                    <h id="username" class="text-2xl">${profile.username}</h>
+                </div>
+                <div class="flex flex-row gap-4">
+                    <button
+                        onclick="show_update_password()"
+                        class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
+                    >
+                        update
+                    </button>
+                    <h class="text-2xl">***sword</h>
+                </div>
             </div>
-            <div class="flex flex-col gap-1">
-                <h id="username" class="text-2xl">${profile.username}</h>
-                <button
-                    onclick="show_update_username()"
-                    class="rounded-xl bg-blue-600 px-2 py-1 text-xl"
-                >
-                    update
-                </button>
-            </div>
-            <button
-                onclick="show_update_password()"
-                class="rounded-xl bg-blue-600 px-8 py-2 text-xl"
-            >
-                Update Password
-            </button>
         </div>
     `;
 }
