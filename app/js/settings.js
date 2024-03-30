@@ -23,6 +23,7 @@ async function logout() {
 }
 
 function show_settings() {
+    location.hash = "profile";
     document.getElementById("main").innerHTML = /*html*/ `
         <div class="flex flex-col items-center gap-12">
             <div class="flex flex-col gap-1">
@@ -53,16 +54,22 @@ function show_settings() {
     `;
 }
 
-function show_change_email() {}
+function show_change_email() {
+    location.hash = "email";
+}
 function change_email() {}
 
 function show_new_email() {}
 function new_email() {}
 
-function show_update_username() {}
+function show_update_username() {
+    location.hash = "username";
+}
 function update_username() {}
 
-function show_update_password() {}
+function show_update_password() {
+    location.hash = "password";
+}
 function update_password() {}
 
 // onload
@@ -97,5 +104,14 @@ function update_password() {}
         toast("Error", "An error occurred");
     }
 
+    if (location.hash == "email") {
+        return show_change_email();
+    }
+    if (location.hash == "username") {
+        return show_update_username();
+    }
+    if (location.hash == "password") {
+        return show_update_password();
+    }
     show_settings();
 })();
