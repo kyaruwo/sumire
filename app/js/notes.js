@@ -54,7 +54,7 @@ async function write_note() {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:42069/api/notes`, {
+        const response = await fetch("http://127.0.0.1:42069/api/notes", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
