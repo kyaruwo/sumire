@@ -104,13 +104,13 @@ function update_password() {}
         toast("Error", "An error occurred");
     }
 
-    if (location.hash == "email") {
+    if (location.hash == "#email") {
         return show_change_email();
     }
-    if (location.hash == "username") {
+    if (location.hash == "#username") {
         return show_update_username();
     }
-    if (location.hash == "password") {
+    if (location.hash == "#password") {
         return show_update_password();
     }
     show_settings();
