@@ -307,7 +307,48 @@ function show_update_password() {
     </div>
 `;
 }
-function update_password() {}
+async function update_password() {
+    const new_password = document.getElementById("new_password").value;
+    if (new_password != document.getElementById("verify_new_password").value) {
+        return toast("Mismatch", "Password");
+    }
+
+    const data = {
+        old_password: document.getElementById("password").value,
+        new_password: new_password,
+    };
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:42069/api/users/password",
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }
+        );
+
+        switch (response.status) {
+            case 200:
+                toast("Success", "Password Updated");
+                show_settings();
+                break;
+            case 404:
+                toast("Not Found", "Incorrect Password");
+                break;
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+}
 
 // onload
 (async function () {
