@@ -58,8 +58,9 @@ Cookie: session_id={{login.response.body.$.session_id}};
 
 {
     "old_email": "{{email}}",
-    "new_email": "{{email}}",
-    "code": 88888888
+    "code": 88888888,
+    "password": "ninomae_ina'nis",
+    "new_email": "{{email}}"
 }
 
 ### username

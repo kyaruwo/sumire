@@ -431,13 +431,13 @@ struct NewEmail {
         length(min = 16, max = 45, message = "length_email")
     )]
     old_email: String,
+    #[validate(range(min = 10000000, max = 99999999, message = "range_code"))]
+    code: i64,
     #[validate(
         regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
     )]
     new_email: String,
-    #[validate(range(min = 10000000, max = 99999999, message = "range_code"))]
-    code: i64,
 }
 
 async fn new_email(
