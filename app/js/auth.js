@@ -23,6 +23,8 @@ function show_register() {
                 maxlength="20"
                 required
                 class="rounded-xl p-4 lowercase text-black"
+                onkeydown="return /[a-z]/i.test(event.key)"
+                ondrop="return false;"
             />
             <input
                 id="password"
@@ -117,6 +119,8 @@ function show_login() {
                 maxlength="20"
                 required
                 class="rounded-xl p-4 lowercase text-black"
+                onkeydown="return /[a-z]/i.test(event.key)"
+                ondrop="return false;"
             />
             <input
                 id="password"
