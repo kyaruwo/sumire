@@ -199,6 +199,7 @@ function show_update_username() {
                     required
                     class="my-4 rounded-xl p-4 lowercase text-black"
                     onkeydown="return /[a-z]/i.test(event.key)"
+                    onpaste="return false;"
                     ondrop="return false;"
                     value="${profile.username}"
                 />
@@ -218,7 +219,42 @@ function show_update_username() {
         </div>
     `;
 }
-function update_username() {}
+async function update_username() {
+    const data = {
+        username: document.getElementById("username").value.toLowerCase(),
+    };
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:42069/api/users/username",
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }
+        );
+
+        switch (response.status) {
+            case 200:
+                toast("Success", "Username Updated");
+                show_settings();
+                break;
+            case 409:
+                toast("Conflict", await response.text());
+                break;
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+}
 
 function show_update_password() {
     document.getElementById("main").innerHTML = /*html*/ `
