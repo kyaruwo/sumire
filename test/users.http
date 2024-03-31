@@ -52,14 +52,13 @@ Cookie: session_id={{login.response.body.$.session_id}};
 }
 
 ### new_email
-PUT {{url}}/new_email
+PUT {{url}}/change_email
 Content-Type: application/json
 Cookie: session_id={{login.response.body.$.session_id}};
 
 {
     "old_email": "{{email}}",
     "code": 88888888,
-    "password": "ninomae_ina'nis",
     "new_email": "{{email}}"
 }
 

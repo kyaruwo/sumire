@@ -33,7 +33,7 @@ pub fn routes() -> Router<Pool<Postgres>> {
         .route("/users/login", post(login))
         .route("/users/logout", put(logout))
         .route("/users/change_email_request", post(change_email_request))
-        .route("/users/new_email", put(new_email))
+        .route("/users/change_email", put(change_email))
         .route("/users/username", put(update_username))
         .route("/users/password", put(update_password))
         .route("/users/forgot_password", post(forgot_password))
@@ -425,7 +425,7 @@ async fn change_email_request(
 }
 
 #[derive(Deserialize, Validate)]
-struct NewEmail {
+struct ChangeEmail {
     #[validate(
         regex(path = *EMAIL, code = "invalid", message = "only_google"),
         length(min = 16, max = 45, message = "length_email")
@@ -440,10 +440,10 @@ struct NewEmail {
     new_email: String,
 }
 
-async fn new_email(
+async fn change_email(
     State(pool): State<Pool<Postgres>>,
     cookies: CookieJar,
-    Json(payload): Json<NewEmail>,
+    Json(payload): Json<ChangeEmail>,
 ) -> Result<StatusCode> {
     let session_id: &str = match cookies.get("session_id") {
         Some(cookie) => cookie.value(),
@@ -462,6 +462,7 @@ async fn new_email(
     SET
         CODE = NULL,
         EMAIL = $1,
+        SESSION_ID = NULL,
         VERIFIED = FALSE
     WHERE
         EMAIL = $2

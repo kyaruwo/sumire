@@ -493,5 +493,12 @@ async function login() {
     if (location.hash == "#forgot_password") {
         return show_forgot_password();
     }
+    if (location.hash == "#verify") {
+        show_verify();
+        document.getElementById("email").value = new URL(
+            document.location
+        ).searchParams.get("email");
+        return;
+    }
     show_login();
 })();

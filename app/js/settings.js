@@ -44,57 +44,57 @@ async function show_settings() {
     }
 
     document.getElementById("main").innerHTML = /*html*/ `
-    <div class="flex items-center justify-center">
-        <div class="flex flex-col items-start gap-12">
-            <div class="flex flex-col gap-2">
-                <span>email</span>
-                <div class="flex gap-2 max-md:flex-col lg:flex-row">
-                    <h id="email" class="text-2xl">${profile.email}</h>
-                    <button
-                        onclick="show_change_email_request()"
-                        class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
-                    >
-                        change
-                    </button>
+        <div class="flex items-center justify-center">
+            <div class="flex flex-col items-start gap-12">
+                <div class="flex flex-col gap-2">
+                    <span>email</span>
+                    <div class="flex gap-2 max-md:flex-col lg:flex-row">
+                        <h id="email" class="text-2xl">${profile.email}</h>
+                        <button
+                            onclick="show_change_email_request()"
+                            class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
+                        >
+                            change
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="flex flex-col gap-2">
-                <span>username</span>
-                <div class="flex gap-2 max-md:flex-col lg:flex-row">
-                    <h id="username" class="text-2xl">${profile.username}</h>
-                    <button
-                        onclick="show_update_username()"
-                        class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
-                    >
-                        update
-                    </button>
+                <div class="flex flex-col gap-2">
+                    <span>username</span>
+                    <div class="flex gap-2 max-md:flex-col lg:flex-row">
+                        <h id="username" class="text-2xl">${profile.username}</h>
+                        <button
+                            onclick="show_update_username()"
+                            class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
+                        >
+                            update
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="flex flex-col gap-2">
-                <span>password</span>
-                <div class="flex gap-2 max-md:flex-col lg:flex-row">
-                    <h class="text-2xl">********</h>
-                    <button
-                        onclick="show_update_password()"
-                        class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
-                    >
-                        update
-                    </button>
+                <div class="flex flex-col gap-2">
+                    <span>password</span>
+                    <div class="flex gap-2 max-md:flex-col lg:flex-row">
+                        <h class="text-2xl">********</h>
+                        <button
+                            onclick="show_update_password()"
+                            class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
+                        >
+                            update
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     `;
 }
 
 function show_change_email_request() {
     document.getElementById("main").innerHTML = /*html*/ `
-    <div class="flex flex-col items-center gap-2">
+    <div class="flex flex-col items-center">
     <form
             onsubmit="change_email_request();return false"
             class="flex flex-col gap-4 text-center text-xl"
         >
-            <h class="mb-2 px-8 text-4xl font-bold">Change Email</h>
+            <h class="mb-2 px-12 text-4xl font-bold">Change Email</h>
             <input
                 id="email"
                 type="text"
@@ -122,65 +122,135 @@ function show_change_email_request() {
     </div>
     `;
 }
-function change_email_request() {}
+async function change_email_request() {
+    const data = {
+        email: document.getElementById("email").value,
+    };
 
-function show_new_email() {
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:42069/api/users/change_email_request",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }
+        );
+
+        switch (response.status) {
+            case 200:
+                toast("Success", "code sent");
+                show_change_email();
+                break;
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+}
+
+function show_change_email() {
     document.getElementById("main").innerHTML = /*html*/ `
-    <div class="flex flex-col items-center gap-2">
-    <form
-            onsubmit="new_email();return false"
-            class="flex flex-col gap-4 text-center text-xl"
-        >
-            <h class="mb-2 px-12 text-4xl font-bold">New Email</h>
-            <input
-                id="email"
-                type="text"
-                placeholder="email"
-                minlength="16"
-                maxlength="45"
-                required
-                class="rounded-xl bg-neutral-950 p-4 lowercase"
-                disabled
-                value="${profile.email}"
-            />
-            <input
-                id="code"
-                type="number"
-                placeholder="code"
-                min="10000000"
-                max="99999999"
-                required
-                class="rounded-xl p-4 text-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            />
-
-            <hr class="my-4" />
-
-            <input
-                id="new_email"
-                type="text"
-                placeholder="new_email"
-                minlength="16"
-                maxlength="45"
-                required
-                class="rounded-xl p-4 lowercase text-black"
-            />
-            <button class="rounded-xl bg-blue-600 px-6 py-4 text-xl font-bold">
-                Change
-            </button>
-
-            <hr class="my-4" />
-
-            <button
-                onclick="show_settings();return false"
-                class="rounded-xl bg-red-600 py-2 font-bold"
+        <div class="flex flex-col items-center">
+            <form
+                onsubmit="change_email();return false"
+                class="flex flex-col gap-4 text-center text-xl"
             >
-                Cancel
-            </button>
-        </form>
-    </div>
+                <h class="mb-2 px-12 text-4xl font-bold">Change Email</h>
+                <input
+                    id="email"
+                    type="text"
+                    placeholder="email"
+                    minlength="16"
+                    maxlength="45"
+                    class="rounded-xl bg-neutral-950 p-4 lowercase"
+                    disabled
+                    value="${profile.email}"
+                />
+                <input
+                    id="code"
+                    type="number"
+                    placeholder="code"
+                    min="10000000"
+                    max="99999999"
+                    class="rounded-xl p-4 text-black [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+
+                <hr class="my-4" />
+
+                <input
+                    id="new_email"
+                    type="text"
+                    placeholder="new_email"
+                    minlength="16"
+                    maxlength="45"
+                    class="rounded-xl p-4 lowercase text-black"
+                />
+                <button class="rounded-xl bg-blue-600 px-6 py-4 text-xl font-bold">
+                    Change
+                </button>
+
+                <hr class="my-4" />
+
+                <button
+                    onclick="show_settings();return false"
+                    class="rounded-xl bg-red-600 py-2 font-bold"
+                >
+                    Cancel
+                </button>
+            </form>
+        </div>
     `;
 }
-function new_email() {}
+async function change_email() {
+    const data = {
+        old_email: document.getElementById("email").value,
+        code: parseInt(document.getElementById("code").value),
+        new_email: document.getElementById("new_email").value,
+    };
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:42069/api/users/change_email",
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }
+        );
+
+        switch (response.status) {
+            case 200:
+                toast("Success", "Email Changed");
+                Cookies.remove("session_id");
+                location.href = `auth?email=${data.new_email}#verify`;
+                break;
+            case 404:
+                toast("Not Found", "Incorrect code");
+                break;
+            case 409:
+                toast("Conflict", await response.text());
+                break;
+            case 401:
+                return logout();
+            default:
+                toast("Error", "An error occurred");
+                break;
+        }
+    } catch (e) {
+        console.log(e);
+        toast("Error", "An error occurred");
+    }
+}
 
 function show_update_username() {
     document.getElementById("main").innerHTML = /*html*/ `
@@ -203,12 +273,10 @@ function show_update_username() {
                     ondrop="return false;"
                     value="${profile.username}"
                 />
-                <button class="rounded-xl bg-blue-600 py-2 font-bold">
-                    Update
-                </button>
+                <button class="rounded-xl bg-blue-600 py-2 font-bold">Update</button>
 
                 <hr class="my-4" />
-                
+
                 <button
                     onclick="show_settings();return false"
                     class="rounded-xl bg-red-600 py-2 font-bold"
@@ -258,54 +326,54 @@ async function update_username() {
 
 function show_update_password() {
     document.getElementById("main").innerHTML = /*html*/ `
-    <div class="flex flex-col items-center">
-        <form
-            onsubmit="update_password();return false"
-            class="flex flex-col gap-4 text-center text-xl"
-        >
-            <h class="mb-2 text-4xl font-bold lg:px-10">Update Password</h>
-            <input
-                id="password"
-                type="password"
-                placeholder="password"
-                minlength="11"
-                maxlength="69"
-                required
-                class="my-2 rounded-xl p-4 text-black"
-            />
-            <input
-                id="new_password"
-                type="password"
-                placeholder="new_password"
-                minlength="11"
-                maxlength="69"
-                required
-                class="rounded-xl p-4 text-black"
-            />
-            <input
-                id="verify_new_password"
-                type="password"
-                placeholder="verify_new_password"
-                minlength="11"
-                maxlength="69"
-                required
-                class="rounded-xl p-4 text-black"
-            />
-            <button class="mt-2 rounded-xl bg-blue-600 py-2 font-bold">
-                Update
-            </button>
-
-            <hr class="my-4" />
-
-            <button
-                onclick="show_settings();return false"
-                class="rounded-xl bg-red-600 py-2 font-bold"
+        <div class="flex flex-col items-center">
+            <form
+                onsubmit="update_password();return false"
+                class="flex flex-col gap-4 text-center text-xl"
             >
-                Cancel
-            </button>
-        </form>
-    </div>
-`;
+                <h class="mb-2 text-4xl font-bold lg:px-10">Update Password</h>
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="password"
+                    minlength="11"
+                    maxlength="69"
+                    required
+                    class="my-2 rounded-xl p-4 text-black"
+                />
+                <input
+                    id="new_password"
+                    type="password"
+                    placeholder="new_password"
+                    minlength="11"
+                    maxlength="69"
+                    required
+                    class="rounded-xl p-4 text-black"
+                />
+                <input
+                    id="verify_new_password"
+                    type="password"
+                    placeholder="verify_new_password"
+                    minlength="11"
+                    maxlength="69"
+                    required
+                    class="rounded-xl p-4 text-black"
+                />
+                <button class="mt-2 rounded-xl bg-blue-600 py-2 font-bold">
+                    Update
+                </button>
+
+                <hr class="my-4" />
+
+                <button
+                    onclick="show_settings();return false"
+                    class="rounded-xl bg-red-600 py-2 font-bold"
+                >
+                    Cancel
+                </button>
+            </form>
+        </div>
+    `;
 }
 async function update_password() {
     const new_password = document.getElementById("new_password").value;
