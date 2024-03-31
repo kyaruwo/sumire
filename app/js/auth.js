@@ -24,6 +24,7 @@ function show_register() {
                 required
                 class="rounded-xl p-4 lowercase text-black"
                 onkeydown="return /[a-z]/i.test(event.key)"
+                onpaste="return false;"
                 ondrop="return false;"
             />
             <input
@@ -120,6 +121,7 @@ function show_login() {
                 required
                 class="rounded-xl p-4 lowercase text-black"
                 onkeydown="return /[a-z]/i.test(event.key)"
+                onpaste="return false;"
                 ondrop="return false;"
             />
             <input
