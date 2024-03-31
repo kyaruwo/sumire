@@ -2,6 +2,23 @@
 
 <br />
 
+<div align="center">
+        <img src="img/landing.png"  />
+        <img src="img/notes.png"  />
+        <img src="img/note.png"  />
+        <img src="img/settings.png"  />
+</div>
+
+<br />
+
+## run
+
+```
+cargo run --release
+```
+
+<br />
+
 ## .env
 
 ```
