@@ -461,7 +461,8 @@ async fn new_email(
         USERS
     SET
         CODE = NULL,
-        EMAIL = $1
+        EMAIL = $1,
+        VERIFIED = FALSE
     WHERE
         EMAIL = $2
         AND CODE = $3
