@@ -46,37 +46,46 @@ async function show_settings() {
     }
 
     document.getElementById("main").innerHTML = /*html*/ `
-        <div class="flex items-center justify-center">
-            <div class="flex flex-col items-start gap-12">
-                <div class="flex flex-row gap-4">
+    <div class="flex items-center justify-center">
+        <div class="flex flex-col items-start gap-12">
+            <div class="flex flex-col gap-2">
+                <span>email</span>
+                <div class="flex gap-2 max-md:flex-col lg:flex-row">
+                    <h id="email" class="text-2xl">${profile.email}</h>
                     <button
                         onclick="show_change_email()"
                         class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
                     >
                         change
                     </button>
-                    <h id="email" class="text-2xl">${profile.email}</h>
                 </div>
-                <div class="flex flex-row gap-4">
+            </div>
+            <div class="flex flex-col gap-2">
+                <span>username</span>
+                <div class="flex gap-2 max-md:flex-col lg:flex-row">
+                    <h id="username" class="text-2xl">${profile.username}</h>
                     <button
                         onclick="show_update_username()"
                         class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
                     >
                         update
                     </button>
-                    <h id="username" class="text-2xl">${profile.username}</h>
                 </div>
-                <div class="flex flex-row gap-4">
+            </div>
+            <div class="flex flex-col gap-2">
+                <span>password</span>
+                <div class="flex gap-2 max-md:flex-col lg:flex-row">
+                    <h class="text-2xl">********</h>
                     <button
                         onclick="show_update_password()"
                         class="rounded-xl bg-blue-600 px-2 py-1 text-sm"
                     >
                         update
                     </button>
-                    <h class="text-2xl">***sword</h>
                 </div>
             </div>
         </div>
+    </div>
     `;
 }
 
