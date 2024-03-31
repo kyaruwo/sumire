@@ -25,8 +25,6 @@ async function logout() {
 let profile;
 
 async function show_settings() {
-    location.hash = "profile";
-
     try {
         const response = await fetch(
             "http://127.0.0.1:42069/api/users/profile"
@@ -89,22 +87,16 @@ async function show_settings() {
     `;
 }
 
-function show_change_email() {
-    location.hash = "email";
-}
+function show_change_email() {}
 function change_email() {}
 
 function show_new_email() {}
 function new_email() {}
 
-function show_update_username() {
-    location.hash = "username";
-}
+function show_update_username() {}
 function update_username() {}
 
-function show_update_password() {
-    location.hash = "password";
-}
+function show_update_password() {}
 function update_password() {}
 
 // onload
@@ -139,14 +131,5 @@ function update_password() {}
         toast("Error", "An error occurred");
     }
 
-    if (location.hash == "#email") {
-        return show_change_email();
-    }
-    if (location.hash == "#username") {
-        return show_update_username();
-    }
-    if (location.hash == "#password") {
-        return show_update_password();
-    }
     show_settings();
 })();
