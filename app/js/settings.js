@@ -90,7 +90,7 @@ async function show_settings() {
 function show_change_email_request() {
     document.getElementById("main").innerHTML = /*html*/ `
         <div class="flex flex-col items-center">
-        <form
+            <form
                 onsubmit="change_email_request();return false"
                 class="flex flex-col gap-4 text-center text-xl"
             >
@@ -111,7 +111,7 @@ function show_change_email_request() {
                 </button>
 
                 <hr class="my-4" />
-                    
+
                 <button
                     onclick="show_settings();return false"
                     class="rounded-xl bg-red-600 py-2 font-bold"
