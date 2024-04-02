@@ -1,12 +1,20 @@
 # sumire
 
+<div>
+    <img src="https://skillicons.dev/icons?i=rust&theme=dark" />
+    <img src="https://skillicons.dev/icons?i=postgresql&theme=dark" />
+    <img src="https://skillicons.dev/icons?i=html&theme=dark" />
+    <img src="https://skillicons.dev/icons?i=javascript&theme=dark" />
+    <img src="https://skillicons.dev/icons?i=tailwindcss&theme=dark" />
+</div>
+
 <br />
 
 <div align="center">
-        <img src="img/landing.png"  />
-        <img src="img/notes.png"  />
-        <img src="img/note.png"  />
-        <img src="img/settings.png"  />
+    <img src="img/landing.png" />
+    <img src="img/notes.png" />
+    <img src="img/note.png" />
+    <img src="img/settings.png" />
 </div>
 
 <br />
